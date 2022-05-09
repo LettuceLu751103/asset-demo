@@ -1,0 +1,15 @@
+<form action="/createOffice" method="POST">
+    <div class="mb-4 text-center">
+        <h1 class="h3 font-weight-normal mb-3">新增辦公室</h1>
+    </div>
+    <div class="form-row mb-3">
+        <label class="form-label" for="name">Name</label>
+        <input class="form-control" type="text" name="name" id="name" placeholder="輸入辦公室名稱" required>
+    </div>
+    <div class="form-row mb-3">
+        <label class="form-label" for="Description">Description</label>
+        <input class="form-control" type="text" name="Description" id="Description" placeholder="輸入辦公室相關描述" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button>
+    <a class="btn btn-danger" href="/office">Return</a>
+</form>

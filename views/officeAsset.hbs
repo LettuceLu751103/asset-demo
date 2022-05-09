@@ -1,0 +1,60 @@
+<div class="container">
+    <nav class="nav  nav-tabs">
+        <a class="nav-link" href="/">首頁</a>
+        <a class="nav-link" aria-current="page" href="/categories">資產類別</a>
+        <a class="nav-link" href="/offices">辦公室類別</a>
+        <a class="nav-link active" href="/officeAssets">個別辦公室資產</a>
+    </nav>
+    <div class="row mt-3">
+        <div class="col-6">
+            <ul class="nav nav-pills">
+                <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" href="/officeAssets">ECO3F</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/officeAssets/eco8f">ECO8F</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/officeAssets/sc">SC</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link disabled" href="/officeAssets/tz">TZ</a>
+                </li>
+            </ul>
+        </div>
+        <div class="col-6">
+            <a href='/createOfficeAsset'>
+                <button type="button" class="btn btn-success">新增資產</button>
+            </a>
+
+            <a href='/transferOfficeAsset'>
+                <button type="button" class="btn btn-warning">異動資產</button>
+            </a>
+        </div>
+    </div>
+
+    <table class="table table-hover mt-3">
+        <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">Name</th>
+                <th scope="col">Vendor</th>
+                <th scope="col">Model</th>
+                <th scope="col">Quantity</th>
+                <th scope="col">Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each assets}}
+            <tr>
+                <th scope="row">#</th>
+                <td>{{this.name}}</td>
+                <td>{{this.Vendor}}</td>
+                <td>{{this.Model}}</td>
+                <td>{{this.Quantity}}</td>
+                <td>{{this.Description}}</td>
+            </tr>
+            {{/each}}
+        </tbody>
+    </table>
+</div>
