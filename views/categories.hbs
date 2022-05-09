@@ -1,0 +1,48 @@
+<div class="container">
+    <div>
+        <a href="/categories" class="link-success">ECO3F-Office</a> |
+        <a href="/categories" class="link-success">TZ-Office</a> |
+        <a href="/categories" class="link-success">V-Office</a> |
+        <a href="/categories" class="link-success">SC-Office</a> |
+        <a href="/categories" class="link-success">CL1405-Office</a> |
+        <a href="/categories" class="link-success">CL1504-Office</a> |
+        <a href="/categories" class="link-success">PB9F-Office</a> |
+        <a href="/categories" class="link-success">PB17F-Office</a> |
+        <a href="/categories" class="link-success">ECO8F-Office</a> |
+    </div>
+    <div class="h1">Category Table</div>
+    <a href='/createCategories'>
+        <button type="button" class="btn btn-primary">New Category</button>
+    </a>
+    <table class="table mt-3">
+        <thead>
+            <tr>
+                <th scope="col">#</th>
+                {{!-- <th scope="col">Category</th> --}}
+                <th scope="col">Name</th>
+                <th scope="col" colspan="3">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each categories}}
+            <tr>
+                <th scope="row">1</th>
+                {{!-- <td>辦公室設備</td> --}}
+                <td>{{this.name}}</td>
+                {{!-- <td><a href="/categories" class="link-success">Show</a></td> --}}
+                <td>
+                    <button type="button" class="btn btn-link">
+                        <a class="btn btn-link link-primary" href="/editCategories/{{this.id}}">
+                            Edit
+                        </a>
+                    </button>
+
+                    <form action="/deleteCategory/{{this.id}}?_method=DELETE" method="POST" style="display: inline;">
+                        <button type="submit" class="btn btn-link link-danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {{/each}}
+        </tbody>
+    </table>
+</div>
