@@ -20,7 +20,7 @@ app.get('/', (req, res) => {
 app.get('/categories', (req, res) => {
   Category.findAll({ raw: true })
     .then(categories => {
-      console.log(categories)
+      // console.log(categories)
       res.render('categories', { categories })
     })
     .catch(err => {
@@ -37,10 +37,27 @@ app.get('/createCategories', (req, res) => {
 // create category
 app.post('/createCategories', (req, res) => {
 
-  Category.create({ name: req.body.name })
-    .then(category => {
-      // req.flash('success_messages', 'restaurant was successfully created') // 在畫面顯示成功提示
-      res.redirect('/categories') //新增完成後導回後台首頁
+  console.log(req.body)
+  Category.findOne({
+    where: {
+      name: req.body.name
+    }
+  })
+    .then(val => {
+      console.log(val)
+      if (val) {
+        console.log('有資料不重覆加入')
+        res.redirect('/categories') //新增完成後導回後台首頁
+      } else {
+        Category.create({ name: req.body.name })
+          .then(category => {
+            // req.flash('success_messages', 'restaurant was successfully created') // 在畫面顯示成功提示
+            res.redirect('/categories') //新增完成後導回後台首頁
+          })
+          .catch(err => {
+            console.log(err)
+          })
+      }
     })
     .catch(err => {
       console.log(err)
