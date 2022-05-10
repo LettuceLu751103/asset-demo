@@ -5,11 +5,12 @@ module.exports = (sequelize, DataTypes) => {
     Vendor: DataTypes.STRING,
     Model: DataTypes.STRING,
     Quantity: DataTypes.INTEGER,
-    Description: DataTypes.STRING
+    Description: DataTypes.STRING,
+    qrcode: DataTypes.STRING
   }, {
     underscored: true,
   });
-  Asset.associate = function(models) {
+  Asset.associate = function (models) {
     // associations can be defined here
   };
   return Asset;

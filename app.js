@@ -14,6 +14,12 @@ const db = require('./models')
 const Category = db.Category
 const Asset = db.Asset
 const Office = db.Office
+
+
+// QR code
+var QRCode = require('qrcode')
+
+
 const fakeData = [{ name: "主機", Vendor: "Generic", Model: "Generic", Quantity: 95 }
   , { name: "螢幕", Vendor: "Asus", Model: "VZ249", Quantity: 29 }
   , { name: "螢幕", Vendor: "Asus", Model: "VZ247", Quantity: 70 }
@@ -132,11 +138,56 @@ app.put('/editCategories/:id', (req, res) => {
 app.get('/officeAssets', (req, res) => {
   Asset.findAll({ raw: true })
     .then(assets => {
-      res.render('officeAsset', { assets })
+
+      assets.forEach(function (asset, index, array) {
+        console.log(asset)
+        QRCode.toDataURL(`http://10.4.100.241:3000/editAssets/${asset.id}`, function (err, url) {
+          asset.qrcode = url
+        })
+        console.log(asset)
+      })
+      // console.log(assets)
+      res.render('officeAsset', { assets: assets })
     })
     .catch(err => {
       console.log(err)
     })
+
+})
+
+// render edit Asset page
+app.get('/editAssets/:id', (req, res) => {
+  Asset.findByPk(req.params.id, {
+    raw: true
+  })
+    .then(asset => {
+
+      console.log(asset)
+      if (!asset) throw new Error("asset didn't exist!")
+      res.render('editAsset', { asset })
+    })
+    .catch(err => next(err))
+
+})
+
+app.put('/editAsset/:id', (req, res) => {
+  console.log(req.params.id)
+  console.log(req.body)
+  Asset.findByPk(req.params.id)
+    .then(asset => {
+      if (!asset) throw new Error("asset didn't exist!")
+      return asset.update({
+        name: req.body.name,
+        Vendor: req.body.Vendor,
+        Model: req.body.Model,
+        Quantity: req.body.Quantity,
+        Description: req.body.Description
+      })
+    })
+    .then(() => {
+      res.redirect('/officeAssets')
+    })
+    .catch(err => next(err))
 
 })
 
@@ -227,10 +278,12 @@ app.delete('/deleteOffice/:id', (req, res) => {
 
 // update office
 app.get('/editOffices/:id', (req, res) => {
+  console.log(req.params.id)
   Office.findByPk(req.params.id, {
     raw: true
   })
     .then(office => {
+
       console.log(office)
       if (!office) throw new Error("office didn't exist!")
       res.render('editOffice', { office })
@@ -256,6 +309,10 @@ app.put('/editOffices/:id', (req, res) => {
     .catch(err => next(err))
 
 })
+
+
+// generate QR Code API
+
 
 app.listen(PORT, () => {
   console.log(`App is running on http://localhost:${PORT}`)

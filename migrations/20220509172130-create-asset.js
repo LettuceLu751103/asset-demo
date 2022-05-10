@@ -20,6 +20,11 @@ module.exports = {
       Quantity: {
         type: Sequelize.INTEGER
       },
+      qrcode: {
+        type: Sequelize.STRING,
+        allowNull: true,
+        defaultValue: '0'
+      },
       Description: {
         type: Sequelize.STRING
       },

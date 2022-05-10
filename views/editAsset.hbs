@@ -1,0 +1,32 @@
+<form action="/editAsset/{{asset.id}}?_method=PUT" method="POST">
+    <div class="mb-4 text-center">
+        <h1 class="h3 font-weight-normal mb-3">新增資產</h1>
+    </div>
+    <div class="form-row mb-3">
+        <label class="form-label" for="name">Name</label>
+        <input class="form-control" type="text" name="name" id="name" placeholder="輸入資產名稱" value="{{asset.name}}"
+            required>
+    </div>
+    <div class="form-row mb-3">
+        <label class="form-label" for="Vendor">Vendor</label>
+        <input class="form-control" type="text" name="Vendor" id="Vendor" placeholder="輸入資產廠牌" value="{{asset.Vendor}}"
+            required>
+    </div>
+    <div class="form-row mb-3">
+        <label class="form-label" for="Model">Model</label>
+        <input class="form-control" type="text" name="Model" id="Model" placeholder="輸入資產型號" value="{{asset.Model}}"
+            required>
+    </div>
+    <div class="form-row mb-3">
+        <label class="form-label" for="Quantity">Quantity</label>
+        <input class="form-control" type="text" name="Quantity" id="Quantity" placeholder="輸入資產數量"
+            value="{{asset.Quantity}}" required>
+    </div>
+    <div class="form-row mb-3">
+        <label class="form-label" for="Description">Description</label>
+        <input class="form-control" type="text" name="Description" id="Description" placeholder="輸入資產相關描述"
+            value="{{asset.Description}}" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button>
+    <a class="btn btn-danger" href="/officeAssets">Return</a>
+</form>
