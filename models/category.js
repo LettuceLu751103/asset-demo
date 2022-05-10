@@ -4,9 +4,11 @@ module.exports = (sequelize, DataTypes) => {
     name: DataTypes.STRING
   }, {
     underscored: true,
+    modelName: 'Category',
   });
-  Category.associate = function(models) {
+  Category.associate = function (models) {
     // associations can be defined here
+    Category.hasMany(models.Asset, { foreignKey: 'categoryId' })
   };
   return Category;
 };

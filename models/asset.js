@@ -9,9 +9,11 @@ module.exports = (sequelize, DataTypes) => {
     qrcode: DataTypes.STRING
   }, {
     underscored: true,
+    modelName: 'Asset',
   });
   Asset.associate = function (models) {
     // associations can be defined here
+    Asset.belongsTo(models.Category, { foreignKey: 'categoryId' })
   };
   return Asset;
 };
