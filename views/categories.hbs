@@ -5,10 +5,15 @@
         <a class="nav-link" href="/offices">辦公室類別</a>
         <a class="nav-link" href="/officeAssets">個別辦公室資產</a>
     </nav>
-    <div class="h2 mt-3">資產類別
-        <a href='/createCategories'>
-            <button type="button" class="btn btn-success">新增資產</button>
-        </a>
+    <div class="row mt-3">
+        <div class="col-6">
+            <div class="h2">資產類別</div>
+        </div>
+        <div class="col-6">
+            <a href='/createCategories'>
+                <button type="button" class="btn btn-success">新增資產</button>
+            </a>
+        </div>
     </div>
     <table class="table table-hover mt-3">
         <thead>
@@ -22,7 +27,7 @@
         <tbody>
             {{#each categories}}
             <tr>
-                <th scope="row">1</th>
+                <th scope="row">{{this.id}}</th>
                 {{!-- <td>辦公室設備</td> --}}
                 <td>{{this.name}}</td>
                 {{!-- <td><a href="/categories" class="link-success">Show</a></td> --}}

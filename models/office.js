@@ -5,9 +5,11 @@ module.exports = (sequelize, DataTypes) => {
     Description: DataTypes.STRING
   }, {
     underscored: true,
+    modelName: 'Office',
   });
-  Office.associate = function(models) {
+  Office.associate = function (models) {
     // associations can be defined here
+    Office.hasMany(models.Asset, { foreignKey: 'officeId' })
   };
   return Office;
 };
