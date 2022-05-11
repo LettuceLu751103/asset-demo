@@ -4,7 +4,13 @@ const methodOverride = require('method-override')
 const bcrypt = require('bcryptjs')
 const app = express()
 const PORT = 3000
-app.engine('hbs', exphbs({ defaultLayout: 'main', extname: '.hbs' }))
+app.engine('hbs', exphbs({
+  defaultLayout: 'main', extname: '.hbs', helpers: {
+    ifCond: function (a, b, options) {
+      return a === b ? options.fn(this) : options.inverse(this)
+    }
+  }
+}))
 app.set('view engine', 'hbs')
 app.use(express.urlencoded({ extended: true }))
 app.use(methodOverride('_method'))
@@ -19,22 +25,6 @@ const Office = db.Office
 // QR code
 var QRCode = require('qrcode')
 
-
-const fakeData = [{ name: "主機", Vendor: "Generic", Model: "Generic", Quantity: 95 }
-  , { name: "螢幕", Vendor: "Asus", Model: "VZ249", Quantity: 29 }
-  , { name: "螢幕", Vendor: "Asus", Model: "VZ247", Quantity: 70 }
-  , { name: "螢幕", Vendor: "Asus", Model: "VZ239", Quantity: 19 }
-  , { name: "螢幕", Vendor: "Asus", Model: "VC239", Quantity: 2 }
-  , { name: "螢幕", Vendor: "Philips", Model: "Philips", Quantity: 43 }
-  , { name: "螢幕", Vendor: "Benq", Model: "Benq", Quantity: 6 }
-  , { name: "螢幕", Vendor: "AOC", Model: "AOC", Quantity: 6 }
-  , { name: "螢幕", Vendor: "LG", Model: "LG 24MK600", Quantity: 11 }
-  , { name: "鍵盤", Vendor: "Logitech", Model: "K120", Quantity: 94 }
-  , { name: "滑鼠", Vendor: "Logitech", Model: "Logitech", Quantity: 95 }
-  , { name: "印表機 Printer HP 315", Vendor: "HP", Model: "HP 315", Quantity: 3 }
-  , { name: "UPS APC-1400", Vendor: "UPS", Model: "APC", Quantity: 92 }
-  , { name: "CCTV攝像頭 180度", Vendor: "Hkvision", Model: "180 angle", Quantity: 5 }
-  , { name: "CCTV攝像頭 360度", Vendor: "Hkvision", Model: "360 angle", Quantity: 55 }]
 
 
 
@@ -136,15 +126,21 @@ app.put('/editCategories/:id', (req, res) => {
 })
 
 app.get('/officeAssets', (req, res) => {
-  Asset.findAll({ raw: true })
+  Asset.findAll({
+    raw: true,
+    nest: true,
+    include: [Category, Office],
+    order: [
+      ['updated_at', 'DESC']
+    ]
+  })
     .then(assets => {
 
       assets.forEach(function (asset, index, array) {
-        console.log(asset)
         QRCode.toDataURL(`http://10.4.100.241:3000/editAssets/${asset.id}`, function (err, url) {
           asset.qrcode = url
         })
-        console.log(asset)
+
       })
       // console.log(assets)
       res.render('officeAsset', { assets: assets })
@@ -157,14 +153,13 @@ app.get('/officeAssets', (req, res) => {
 
 // render edit Asset page
 app.get('/editAssets/:id', (req, res) => {
-  Asset.findByPk(req.params.id, {
-    raw: true
-  })
-    .then(asset => {
-
-      console.log(asset)
-      if (!asset) throw new Error("asset didn't exist!")
-      res.render('editAsset', { asset })
+  Promise.all([
+    Asset.findByPk(req.params.id, { raw: true, }),
+    Category.findAll({ raw: true }),
+    Office.findAll({ raw: true })
+  ])
+    .then(([asset, category, office]) => {
+      res.render('editAsset', { asset, category, office })
     })
     .catch(err => next(err))
 
@@ -192,17 +187,37 @@ app.put('/editAsset/:id', (req, res) => {
 })
 
 app.get('/createOfficeAsset', (req, res) => {
-  res.render('createOfficeAsset')
+  Promise.all([
+    Category.findAll({
+      raw: true,
+      neest: true
+    }),
+    Office.findAll({
+      raw: true,
+      nest: true
+    })
+  ])
+    .then(([category, office]) => {
+      res.render('createOfficeAsset', { category, office })
+    })
+    .catch(err => {
+      console.log(err)
+    })
+
 })
 
 app.post('/createOfficeAsset', (req, res) => {
-  console.log(req.body)
+
   const { name, Vendor, Model, Quantity, Description } = req.body
+  const categoryId = req.body.category_id
+  const officeId = req.body.office_id
   Asset.create({
+    categoryId,
     name,
     Vendor,
     Model,
     Quantity,
+    officeId,
     Description
   })
     .then(() => {
@@ -217,7 +232,9 @@ app.post('/createOfficeAsset', (req, res) => {
 
 // render office page
 app.get('/offices', (req, res) => {
-  Office.findAll({ raw: true })
+  Office.findAll({
+    raw: true,
+  })
     .then(offices => {
       res.render('office', { offices })
     })
