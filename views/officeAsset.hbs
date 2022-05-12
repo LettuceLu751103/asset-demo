@@ -3,7 +3,8 @@
         <a class="nav-link" href="/">首頁</a>
         <a class="nav-link" aria-current="page" href="/categories">資產類別</a>
         <a class="nav-link" href="/offices">辦公室類別</a>
-        <a class="nav-link active" href="/officeAssets">個別辦公室資產</a>
+        <a class="nav-link active" href="/officeAssets">辦公室資產</a>
+        <a class="nav-link" href="#">GatePass</a>
     </nav>
     <div class="row mt-3">
 
@@ -17,58 +18,147 @@
             </a> --}}
         </div>
         <div class="col-6">
-            {{!-- <ul class="nav nav-pills">
-                <li class="nav-item">
-                    <a class="nav-link active" aria-current="page" href="/officeAssets">ECO3F</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/officeAssets/eco8f">ECO8F</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/officeAssets/sc">SC</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link disabled" href="/officeAssets/tz">TZ</a>
-                </li>
-            </ul> --}}
+            {{!-- <a href='#'>
+                <button type="button" class="btn btn-primary">移動到待移動資產</button>
+            </a> --}}
+        </div>
+    </div>
+    <div class="row mt-2">
+
+        <div class="col-md-8">
+            <div class="row justify-content-between">
+                <div class="col-4">
+                    <select class="form-select" aria-label="Default select example">
+                        <option selected>全部辦公室</option>
+                        {{#each office}}
+                        <option value="{{this.id}}" class="{{#ifCond this.id ../officeId}}active{{/ifCond}}">
+                            {{this.name}}
+                        </option>
+                        {{/each}}
+                    </select>
+                </div>
+                <div class="col-4">
+                    <div class="">
+                        <input type="text" class="form-control" id="search_office" placeholder="搜尋資產">
+                    </div>
+                </div>
+            </div>
+
+            <table class="table table-hover mt-2">
+                <thead>
+                    <tr>
+                        <th scope="col"></th>
+                        <th scope="col">#</th>
+                        <th scope="col">Category</th>
+                        <th scope="col">Name</th>
+                        <th scope="col">Vendor</th>
+                        <th scope="col">Model</th>
+                        <th scope="col">Quantity</th>
+                        <th scope="col">Office</th>
+                        <th scope="col">qrcode</th>
+                        {{!-- <th scope="col">Description</th> --}}
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#each assets}}
+                    <tr class="assetTr">
+
+                        <th>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
+                            </div>
+                        </th>
+                        <th scope="row" class="">{{this.id}}</th>
+                        <td>{{this.Category.name}}</td>
+                        <td>{{this.name}}</td>
+                        <td>{{this.Vendor}}</td>
+                        <td>{{this.Model}}</td>
+                        <td>{{this.Quantity}}</td>
+                        <td>{{this.Office.name}}</td>
+                        <td><img src="{{this.qrcode}}" alt="" style="width:30px; height:30px;"></td>
+                        {{!-- <td>{{this.Description}}</td> --}}
+                    </tr>
+                    {{/each}}
+                </tbody>
+            </table>
+            <nav aria-label="Page navigation example">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item {{#ifCond pagination.currentPage 1}}disabled{{/ifCond}}">
+                        <a class="page-link" href="/officeAssets?page={{pagination.prev}}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    {{#each pagination.pages}}
+                    {{#ifCond this ../pagination.currentPage}}
+                    <li class="page-item active"><a class="page-link" href="#">{{this}}</a></li>
+                    {{else}}
+                    <li class="page-item">
+                        <a class="page-link" href="/officeAssets?page={{this}}">{{this}}</a>
+                    </li>
+                    {{/ifCond}}
+                    {{/each}}
+                    <li class="page-item {{#ifCond pagination.currentPage pagination.totalPage}}disabled{{/ifCond}}">
+                        <a class="page-link" href="/officeAssets?page={{pagination.next}}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+        <div class="col-md-4">
+            <div class="h4">待移動資產</div>
+            <form class="">
+                <table class=" table table-hover mt-3">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">名稱</th>
+                            <th scope="col">數量</th>
+                            <th scope="col">動作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <th scope="row"><a href="#">1</a></th>
+                            <td>主機</td>
+                            <td>1</td>
+                            <td><a href="#">移除</a></td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><a href="#">2</a></th>
+                            <td>鍵盤</td>
+                            <td>1</td>
+                            <td><a href="#">移除</a></td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><a href="#">3</a></th>
+                            <td>滑鼠</td>
+                            <td>1</td>
+                            <td><a href="#">移除</a></td>
+                        </tr>
+
+                    </tbody>
+                </table>
+                <button type="submit" class="btn btn-success btn-block">成立 GatePass</button>
+            </form>
         </div>
     </div>
 
-    <table class="table table-hover mt-3">
-        <thead>
-            <tr>
-                <th scope="col"></th>
-                <th scope="col">#</th>
-                <th scope="col">Category</th>
-                <th scope="col">Name</th>
-                <th scope="col">Vendor</th>
-                <th scope="col">Model</th>
-                <th scope="col">Quantity</th>
-                <th scope="col">Office</th>
-                <th scope="col">qrcode</th>
-                <th scope="col">Description</th>
-            </tr>
-        </thead>
-        <tbody>
-            {{#each assets}}
-            <tr>
 
-                <th>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
-                    </div>
-                </th>
-                <th scope="row">{{this.id}}</th>
-                <td>{{this.Category.name}}</td>
-                <td>{{this.name}}</td>
-                <td>{{this.Vendor}}</td>
-                <td>{{this.Model}}</td>
-                <td>{{this.Quantity}}</td>
-                <td>{{this.Office.name}}</td>
-                <td><img src="{{this.qrcode}}" alt="" style="width:40px; height:40px;"></td>
-                <td>{{this.Description}}</td>
-            </tr>
-            {{/each}}
-        </tbody>
-    </table>
 </div>
+
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script>
+    axios.get('/officeAssets')
+        .then(function (response) {
+            // handle success
+            console.log(response);
+        })
+        .catch(function (error) {
+            // handle error
+            console.log(error);
+        })
+        .then(function () {
+            // always executed
+        });
+</script>

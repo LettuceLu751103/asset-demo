@@ -1,17 +1,19 @@
 const express = require('express')
 const exphbs = require('express-handlebars')
+// load some helpers
+const handlebarsHelpers = require('./helpers/handlebars-helpers')
+const { getOffset, getPagination } = require('./helpers/pagination-helper')
+const { genQR } = require('./helpers/generateQRCode')
 const methodOverride = require('method-override')
 const bcrypt = require('bcryptjs')
 const app = express()
 const PORT = 3000
-app.engine('hbs', exphbs({
-  defaultLayout: 'main', extname: '.hbs', helpers: {
-    ifCond: function (a, b, options) {
-      return a === b ? options.fn(this) : options.inverse(this)
-    }
-  }
-}))
+
+
 app.set('view engine', 'hbs')
+app.engine('hbs', exphbs({ extname: '.hbs', helpers: handlebarsHelpers }))
+
+
 app.use(express.urlencoded({ extended: true }))
 app.use(methodOverride('_method'))
 
@@ -126,28 +128,41 @@ app.put('/editCategories/:id', (req, res) => {
 })
 
 app.get('/officeAssets', (req, res) => {
-  Asset.findAll({
-    raw: true,
-    nest: true,
-    include: [Category, Office],
-    order: [
-      ['updated_at', 'DESC']
-    ]
-  })
-    .then(assets => {
-
-      assets.forEach(function (asset, index, array) {
-        QRCode.toDataURL(`http://10.4.100.241:3000/editAssets/${asset.id}`, function (err, url) {
-          asset.qrcode = url
-        })
-
+  // define default data limit
+  const DEFAULT_LIMIT = 10
+  const officeId = Number(req.query.officeId)
+  const page = Number(req.query.page) || 1
+  const limit = Number(req.query.limit) || DEFAULT_LIMIT
+  const offset = getOffset(limit, page)
+  console.log('傳送進來的 page : ')
+  console.log(page)
+  console.log('傳送進來的 limit : ')
+  console.log(limit)
+  console.log('傳送進來的 officeId : ')
+  console.log(officeId)
+  Promise.all([
+    Asset.findAndCountAll({
+      raw: true,
+      nest: true,
+      include: [Category, Office],
+      order: [
+        ['updated_at', 'DESC']
+      ],
+      limit,
+      offset
+    }),
+    Category.findAll({ raw: true }),
+    Office.findAll({ raw: true })
+  ]).then(([assets, category, office]) => {
+    assets.rows.forEach(item => {
+      QRCode.toDataURL(`http://10.4.100.241:3000/editAssets/${item.id}`, function (err, url) {
+        item.qrcode = url
       })
-      // console.log(assets)
-      res.render('officeAsset', { assets: assets })
     })
-    .catch(err => {
-      console.log(err)
-    })
+    res.render('officeAsset', { assets: assets.rows, pagination: getPagination(limit, page, assets.count), category, office })
+  }).catch(err => {
+    console.log(err)
+  })
 
 })
 
@@ -190,7 +205,7 @@ app.get('/createOfficeAsset', (req, res) => {
   Promise.all([
     Category.findAll({
       raw: true,
-      neest: true
+      nest: true
     }),
     Office.findAll({
       raw: true,
@@ -219,11 +234,9 @@ app.post('/createOfficeAsset', (req, res) => {
     Quantity,
     officeId,
     Description
+  }).then(() => {
+    res.redirect('/officeAssets')
   })
-    .then(() => {
-      console.log("資料插入成功")
-      res.redirect('/officeAssets')
-    })
     .catch(err => {
       console.log(err)
     })

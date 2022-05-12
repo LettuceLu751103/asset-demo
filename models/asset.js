@@ -6,7 +6,7 @@ module.exports = (sequelize, DataTypes) => {
     Model: DataTypes.STRING,
     Quantity: DataTypes.INTEGER,
     Description: DataTypes.STRING,
-    qrcode: DataTypes.STRING
+    qrcode: DataTypes.TEXT('long')
   }, {
     underscored: true,
     modelName: 'Asset',
