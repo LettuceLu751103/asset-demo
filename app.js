@@ -8,7 +8,7 @@ const methodOverride = require('method-override')
 const bcrypt = require('bcryptjs')
 const app = express()
 const PORT = 3000
-
+const { Op } = require("sequelize");
 
 app.set('view engine', 'hbs')
 app.engine('hbs', exphbs({ extname: '.hbs', helpers: handlebarsHelpers }))
@@ -27,6 +27,11 @@ const Office = db.Office
 // QR code
 var QRCode = require('qrcode')
 
+// Route 相關
+const router = express.Router()
+const { apis } = require('./routes')
+
+app.use('/api', apis)
 
 
 
@@ -131,15 +136,16 @@ app.get('/officeAssets', (req, res) => {
   // define default data limit
   const DEFAULT_LIMIT = 10
   const officeId = Number(req.query.officeId)
+  const categoryId = Number(req.query.categoryId)
+  let searchName = req.query.searchString
+  let name = ""
   const page = Number(req.query.page) || 1
   const limit = Number(req.query.limit) || DEFAULT_LIMIT
   const offset = getOffset(limit, page)
-  console.log('傳送進來的 page : ')
-  console.log(page)
-  console.log('傳送進來的 limit : ')
-  console.log(limit)
-  console.log('傳送進來的 officeId : ')
-  console.log(officeId)
+  if (searchName) {
+    name = { [Op.like]: '%' + searchName + '%' }
+  }
+
   Promise.all([
     Asset.findAndCountAll({
       raw: true,
@@ -148,6 +154,12 @@ app.get('/officeAssets', (req, res) => {
       order: [
         ['updated_at', 'DESC']
       ],
+      where: {
+
+        ...officeId ? { officeId } : {},
+        ...categoryId ? { categoryId } : {},
+        ...name ? { name } : {},
+      },
       limit,
       offset
     }),
@@ -159,7 +171,55 @@ app.get('/officeAssets', (req, res) => {
         item.qrcode = url
       })
     })
-    res.render('officeAsset', { assets: assets.rows, pagination: getPagination(limit, page, assets.count), category, office })
+
+    res.render('officeAsset', { assets: assets.rows, pagination: getPagination(limit, page, assets.count), category, office, categoryId, officeId, searchName })
+  }).catch(err => {
+    console.log(err)
+  })
+
+})
+
+app.get('/api/officeAssets', (req, res) => {
+  // define default data limit
+  const DEFAULT_LIMIT = 10
+  const officeId = Number(req.query.officeId)
+  const page = Number(req.query.page) || 1
+  const limit = Number(req.query.limit) || DEFAULT_LIMIT
+  const name = req.query.name
+  const offset = getOffset(limit, page)
+  console.log('傳送進來的 page : ')
+  console.log(page)
+  console.log('傳送進來的 limit : ')
+  console.log(limit)
+  console.log('傳送進來的 officeId : ')
+  console.log(officeId)
+  console.log('傳送進來的 name : ')
+  console.log(name)
+  Promise.all([
+    Asset.findAndCountAll({
+      raw: true,
+      nest: true,
+      include: [Category, Office],
+      where: {
+        ...officeId ? { officeId } : {},
+        ...name ? { name } : {}
+      },
+      order: [
+        ['updated_at', 'DESC']
+      ],
+      limit,
+      offset
+    }),
+    Category.findAll({ raw: true }),
+    Office.findAll({ raw: true })
+  ]).then(([assets, category, office]) => {
+    console.log(assets)
+    assets.rows.forEach(item => {
+      QRCode.toDataURL(`http://10.4.100.241:3000/editAssets/${item.id}`, function (err, url) {
+        item.qrcode = url
+      })
+    })
+    res.json({ assets: assets.rows, pagination: getPagination(limit, page, assets.count), category, office })
   }).catch(err => {
     console.log(err)
   })

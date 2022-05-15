@@ -6,44 +6,62 @@
         <a class="nav-link active" href="/officeAssets">辦公室資產</a>
         <a class="nav-link" href="#">GatePass</a>
     </nav>
-    <div class="row mt-3">
 
-        <div class="col-6">
-            <a href='/createOfficeAsset'>
-                <button type="button" class="btn btn-success">新增資產</button>
-            </a>
-
-            {{!-- <a href='/transferOfficeAsset'>
-                <button type="button" class="btn btn-warning">異動資產</button>
-            </a> --}}
-        </div>
-        <div class="col-6">
-            {{!-- <a href='#'>
-                <button type="button" class="btn btn-primary">移動到待移動資產</button>
-            </a> --}}
-        </div>
-    </div>
     <div class="row mt-2">
 
         <div class="col-md-8">
             <div class="row justify-content-between">
                 <div class="col-4">
-                    <select class="form-select" aria-label="Default select example">
-                        <option selected>全部辦公室</option>
+                    <div class="">
+                        <button type="button" class="btn btn-outline-primary" id="createOfficeAsset">新增資產</button>
+                        <button type="button" class="btn btn-outline-success" id="transferOfficeAsset">移動資產</button>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <select class="form-select" aria-label="Default select example" id="limitSelector">
+                        <option value="10" selected>顯示 10 筆</option>
+                        <option value="20">顯示 20 筆</option>
+                        <option value="50">顯示 50 筆</option>
+                        <option value="100">顯示 100 筆</option>
+                    </select>
+                </div>
+            </div>
+            <form action="/officeAssets" method="get" class="form-inline">
+                <div class="col-3">
+                    <select class="form-select mt-2" aria-label="Default select example" id="officeSelector"
+                        name="officeId">
+                        <option value="" selected>全部辦公室</option>
                         {{#each office}}
-                        <option value="{{this.id}}" class="{{#ifCond this.id ../officeId}}active{{/ifCond}}">
+                        <option value="{{this.id}}" class="{{#ifCond this.id ../officeId}}active{{/ifCond}}" {{#ifCond
+                            this.id ../officeId}}selected{{/ifCond}}>
                             {{this.name}}
                         </option>
                         {{/each}}
                     </select>
                 </div>
-                <div class="col-4">
-                    <div class="">
-                        <input type="text" class="form-control" id="search_office" placeholder="搜尋資產">
+                <div class="col-3">
+                    <select class="form-select mt-2" aria-label="Default select example" id="officeSelector"
+                        name="categoryId">
+                        <option value="" selected>全部類別</option>
+                        {{#each category}}
+                        <option value="{{this.id}}" class="{{#ifCond this.id ../categoryId}}active{{/ifCond}}" {{#ifCond
+                            this.id ../categoryId}}selected{{/ifCond}}>
+                            {{this.name}}
+                        </option>
+                        {{/each}}
+                    </select>
+                </div>
+                <div class="col-6">
+                    <div class="input-group mt-2">
+                        <input type="text" class="form-control" id="searchOffice" placeholder="搜尋資產" name="searchString"
+                            value="{{searchName}}">
+                        <div class=" input-group-append">
+                            <button class="btn btn-outline-secondary" type="submit" id="button-addon2">搜尋</button>
+                        </div>
                     </div>
                 </div>
-            </div>
 
+            </form>
             <table class="table table-hover mt-2">
                 <thead>
                     <tr>
@@ -59,13 +77,13 @@
                         {{!-- <th scope="col">Description</th> --}}
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="datatbody">
                     {{#each assets}}
                     <tr class="assetTr">
-
                         <th>
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
+                                <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault"
+                                    data-id="{{this.id}}" data-name="{{this.name}}">
                             </div>
                         </th>
                         <th scope="row" class="">{{this.id}}</th>
@@ -82,7 +100,7 @@
                 </tbody>
             </table>
             <nav aria-label="Page navigation example">
-                <ul class="pagination justify-content-center">
+                <ul class="pagination justify-content-center" id="dataPagination">
                     <li class="page-item {{#ifCond pagination.currentPage 1}}disabled{{/ifCond}}">
                         <a class="page-link" href="/officeAssets?page={{pagination.prev}}" aria-label="Previous">
                             <span aria-hidden="true">&laquo;</span>
@@ -117,30 +135,14 @@
                             <th scope="col">動作</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr>
-                            <th scope="row"><a href="#">1</a></th>
-                            <td>主機</td>
-                            <td>1</td>
-                            <td><a href="#">移除</a></td>
-                        </tr>
-                        <tr>
-                            <th scope="row"><a href="#">2</a></th>
-                            <td>鍵盤</td>
-                            <td>1</td>
-                            <td><a href="#">移除</a></td>
-                        </tr>
-                        <tr>
-                            <th scope="row"><a href="#">3</a></th>
-                            <td>滑鼠</td>
-                            <td>1</td>
-                            <td><a href="#">移除</a></td>
-                        </tr>
-
+                    <tbody id="transferArea">
+                        {{!-- 這裡放待移轉資產 --}}
                     </tbody>
                 </table>
                 <button type="submit" class="btn btn-success btn-block">成立 GatePass</button>
+
             </form>
+            <button type="submit" class="btn btn-danger btn-block mt-2" id="resetTransferAssetArray">清空</button>
         </div>
     </div>
 
@@ -149,16 +151,262 @@
 
 <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 <script>
-    axios.get('/officeAssets')
+
+    const createOfficeAsset = document.querySelector('#createOfficeAsset')
+    const limitSelector = document.querySelector('#limitSelector')
+    const officeSelector = document.querySelector('#officeSelector')
+    const datatbody = document.querySelector('#datatbody')
+    const dataPagination = document.querySelector('#dataPagination')
+    const searchOffice = document.querySelector('#searchOffice')
+    const transferOfficeAsset = document.querySelector('#transferOfficeAsset')
+    const formCheck = document.querySelectorAll('.form-check-input')
+    const STORAGE_KEY = 'transferAssets'
+    const transferArea = document.querySelector('#transferArea')
+    const resetTransferAssetArray = document.querySelector('#resetTransferAssetArray')
+
+    let assetArray = []
+    initialTransferArea()
+    formCheck.forEach(item => {
+        item.addEventListener('click', () => {
+            let asset = {}
+            asset.id = item.getAttribute('data-id')
+            asset.name = item.getAttribute('data-name')
+            let originAssetArray = localStorage.getItem(STORAGE_KEY)
+            originAssetArray = JSON.parse(originAssetArray)
+            if (item.checked === true) {
+                transferArea.innerHTML = ''
+                // 1. 先比對有沒有同樣的資料在localstorage裡面
+                // 2. 如果有就不新增到localstorage
+                // 3. 如果沒有在localstorage裡面, 那麼就進行新增
+                // 4. 都要重新渲染transferArea
+                if (originAssetArray) {
+                    // 當前localstorage有資料, 要比對是不是已經有了, 沒有才進行新增
+                    const result = originAssetArray.find(item => item.id === asset.id)
+                    console.log(result)
+                    if (result === undefined) {
+                        console.log('準備新增')
+                        originAssetArray.push(asset)
+                        localStorage.setItem(STORAGE_KEY, JSON.stringify(originAssetArray))
+                    }
+                } else {
+                    console.log('當前localstorage沒有資料, 直接放入 localstorage')
+                    originAssetArray = []
+                    originAssetArray.push(asset)
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(originAssetArray))
+                }
+            } else {
+                originAssetArray = originAssetArray.filter(as => as.id !== asset.id)
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(originAssetArray))
+            }
+            initialTransferArea()
+        })
+    })
+
+
+
+    // 清空待移轉資產事件
+    resetTransferAssetArray.addEventListener('click', () => {
+        let conformResetTransferAssetArray = confirm('清空待移轉資產?')
+        if (conformResetTransferAssetArray === true) {
+            localStorage.removeItem(STORAGE_KEY)
+            assetArray = []
+            renderLocalStorage()
+            formCheck.forEach(item => {
+                item.checked = false
+            })
+        }
+    })
+
+    function initialTransferArea() {
+        let rawData = ''
+        let originAssetArray = localStorage.getItem(STORAGE_KEY)
+        originAssetArray = JSON.parse(originAssetArray)
+        console.log(originAssetArray)
+        if (originAssetArray) {
+            originAssetArray.forEach(asset => {
+                formCheck.forEach(item => {
+                    let id = item.getAttribute('data-id')
+                    if (asset.id === id) {
+                        item.checked = true
+                    }
+                })
+                rawData += `
+                    <tr>
+                        <th scope="row"><a href="#">${asset.id}</a></th>
+                        <td>${asset.name}</td>
+                        <td>1</td>
+                        <td><button type="button" class="btn btn-outline-danger mt-2 removeFromTransferArea" data-id=${asset.id}>移除</button></td>
+                    </tr>
+                    `
+            })
+            transferArea.innerHTML = rawData
+            bindRemoveEvent()
+        }
+
+    }
+
+    function bindRemoveEvent() {
+        const removeFromTransferArea = document.querySelectorAll('.removeFromTransferArea')
+        // 待移轉資產移除按鈕事件
+
+        removeFromTransferArea.forEach(item => {
+
+            item.addEventListener('click', () => {
+                console.log('準備進行刪除')
+                let conformResetTransferAssetArray = confirm('將此資產移出待移轉資產?')
+                if (conformResetTransferAssetArray === true) {
+                    // 將此資產移除 localstorage
+
+                    // 重新渲染 assetTransferArea
+
+                    // 重新將 checkbox equal true
+
+                    // 底下代碼, 還不能將 checkbox equal true
+                    console.log(item.getAttribute('data-id'))
+                    let id = item.getAttribute('data-id')
+                    let originAssetArray = localStorage.getItem(STORAGE_KEY)
+                    originAssetArray = JSON.parse(originAssetArray)
+                    console.log(originAssetArray)
+                    originAssetArray = originAssetArray.filter(as => as.id !== id)
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(originAssetArray))
+                    initialTransferArea()
+                    console.log(originAssetArray)
+                }
+
+            })
+
+        })
+
+    }
+    function renderLocalStorage() {
+        transferArea.innerHTML = ''
+        let rawData = ''
+        assetArray.forEach(asset => {
+            rawData += `
+                    <tr>
+                        <th scope="row"><a href="#">${asset.id}</a></th>
+                        <td>${asset.name}</td>
+                        <td>1</td>
+                        <td><a href="#">移除</a></td>
+                    </tr>
+                    `
+        })
+        transferArea.innerHTML = rawData
+    }
+
+    // 新增資產按鈕動作
+    createOfficeAsset.addEventListener('click', () => {
+        window.location.href = `/createOfficeAsset`;
+    })
+    /*
+    officeSelector.addEventListener('change', () => {
+        axios.get(`/api/officeAssets/?officeId=${officeSelector.value
+            }&limit=${limitSelector.value}`)
+            .then(function (response) {
+                // handle success
+                console.log(response)
+
+                datatbody.innerHTML = ``
+                let rawData = ''
+                response.data.assets.forEach(asset => {
+                    rawData += `
+                    <tr class="assetTr">
+                        <th>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
+                            </div>
+                        </th>
+                        <th scope="row" class="">${asset.id}</th>
+                        <td>${asset.Category.name}</td>
+                        <td>${asset.name}</td>
+                        <td>${asset.Vendor}</td>
+                        <td>${asset.Model}</td>
+                        <td>${asset.Quantity}</td>
+                        <td>${asset.Office.name}</td>
+                        <td><img src="${asset.qrcode}" alt="" style="width:30px; height:30px;"></td>
+                    </tr>
+                    `
+                })
+                datatbody.innerHTML = rawData
+
+            })
+            .catch(function (error) {
+                // handle error
+                console.log(error);
+            })
+    })
+
+    
+
+    limitSelector.addEventListener('change', () => {
+        console.log(limitSelector.value)
+        console.log(officeSelector.value)
+        axios.get(`/api/officeAssets/?officeId=${officeSelector.value
+            }& limit=${limitSelector.value} `)
+            .then(function (response) {
+                // handle success
+                datatbody.innerHTML = ``
+                console.log(response.data)
+                let rawData = ''
+                response.data.assets.forEach(asset => {
+                    rawData += `
+                    < tr class="assetTr" >
+                        <th>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
+                            </div>
+                        </th>
+                        <th scope="row" class="">${asset.id}</th>
+                        <td>${asset.Category.name}</td>
+                        <td>${asset.name}</td>
+                        <td>${asset.Vendor}</td>
+                        <td>${asset.Model}</td>
+                        <td>${asset.Quantity}</td>
+                        <td>${asset.Office.name}</td>
+                        <td><img src="${asset.qrcode}" alt="" style="width:30px; height:30px;"></td>
+                { { !-- < td > ${asset.Description}</td > --} }
+                    </tr >
+                    `
+                })
+                // console.log(rawData)
+                datatbody.innerHTML = rawData
+
+            })
+            .catch(function (error) {
+                // handle error
+                console.log(error);
+            })
+    })
+
+    searchOffice.addEventListener('keyup', () => {
+        console.log('search String:' + searchOffice.value)
+        console.log(officeSelector.value)
+        axios.get(`/api/officeAssets/?officeId=${officeSelector.value
+            }`)
+            .then(function (response) {
+                // handle success
+                console.log(response.data)
+
+
+            })
+            .catch(function (error) {
+                // handle error
+                console.log(error);
+            })
+    })
+
+*/
+
+    axios.get(`/api/offices`)
         .then(function (response) {
             // handle success
-            console.log(response);
+            console.log(response)
+
+
         })
         .catch(function (error) {
             // handle error
             console.log(error);
         })
-        .then(function () {
-            // always executed
-        });
+
 </script>
