@@ -13,6 +13,36 @@ const Office = db.Office
 // QR code
 var QRCode = require('qrcode')
 
+// create gatepass 
+router.post('/gatepass/create', (req, res) => {
+    console.log('收到創建 gatepass 請求')
+})
+
+router.get('/gatepassData/:id', (req, res) => {
+    console.log('收到gatepassData: ')
+    console.log(req.params)
+    const id = Number(req.params.id)
+    Promise.all([Asset.findByPk(id, {
+        raw: true,
+        nest: true,
+        include: [Category, Office],
+        // where: {
+
+        // },
+        order: [
+            ['updated_at', 'DESC']
+        ],
+        // limit,
+        // offset
+    }),
+    Category.findAll({ raw: true }),
+    Office.findAll({ raw: true })
+    ])
+        .then(([asset, category, office]) => {
+            res.json({ status: 'ok', data: asset })
+        })
+
+})
 
 router.get('/officeAssets', (req, res) => {
     // define default data limit

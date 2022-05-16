@@ -14,11 +14,12 @@
                 <div class="col-4">
                     <div class="">
                         <button type="button" class="btn btn-outline-primary" id="createOfficeAsset">新增資產</button>
-                        <button type="button" class="btn btn-outline-success" id="transferOfficeAsset">移動資產</button>
+                        <button type="button" class="btn btn-outline-success" id="transferOfficeAsset"
+                            disabled>移動資產</button>
                     </div>
                 </div>
                 <div class="col-4">
-                    <select class="form-select" aria-label="Default select example" id="limitSelector">
+                    <select class="form-select" aria-label="Default select example" id="limitSelector" disabled>
                         <option value="10" selected>顯示 10 筆</option>
                         <option value="20">顯示 20 筆</option>
                         <option value="50">顯示 50 筆</option>
@@ -125,24 +126,102 @@
         </div>
         <div class="col-md-4">
             <div class="h4">待移動資產</div>
-            <form class="">
-                <table class=" table table-hover mt-3">
-                    <thead>
-                        <tr>
-                            <th scope="col">#</th>
-                            <th scope="col">名稱</th>
-                            <th scope="col">數量</th>
-                            <th scope="col">動作</th>
-                        </tr>
-                    </thead>
-                    <tbody id="transferArea">
-                        {{!-- 這裡放待移轉資產 --}}
-                    </tbody>
-                </table>
-                <button type="submit" class="btn btn-success btn-block">成立 GatePass</button>
 
-            </form>
+            <table class=" table table-hover mt-3">
+                <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">名稱</th>
+                        <th scope="col">數量</th>
+                        <th scope="col">動作</th>
+                    </tr>
+                </thead>
+                <tbody id="transferArea">
+                    {{!-- 這裡放待移轉資產 --}}
+                </tbody>
+            </table>
+            <button type="submit" class="btn btn-success btn-block" data-toggle="modal" data-target="#exampleModal"
+                id="checkGP">確認
+                GatePass</button>
+
             <button type="submit" class="btn btn-danger btn-block mt-2" id="resetTransferAssetArray">清空</button>
+
+
+
+            <!-- Modal -->
+            <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog modal-xl">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">GatePass</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body" id="modalBody">
+                            <form action="">
+                                <div class="row">
+
+
+
+                                    <div class="col-8">
+                                        <div class="card">
+                                            <div class="card-header">
+                                                待移轉設備
+                                            </div>
+                                            <div class="card-body">
+                                                <table class="table table-hover">
+                                                    <thead>
+                                                        <tr>
+                                                            <th scope="col">#</th>
+                                                            <th scope="col">圖片</th>
+                                                            <th scope="col">名稱</th>
+                                                            <th scope="col">數量</th>
+                                                            <th scope="col">原始地點</th>
+
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="gatepassArea">
+                                                        {{!-- 後端請求資料渲染到 gatepassArea --}}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="card">
+                                            <div class="card-header">
+                                                選擇移轉的辦公室
+                                            </div>
+                                            <div class="card-body">
+                                                <select class="form-select mt-2" aria-label="Default select example"
+                                                    id="officeSelector" name="officeId">
+                                                    <option value="" selected>...</option>
+                                                    {{#each office}}
+                                                    <option value="{{this.id}}"
+                                                        class="{{#ifCond this.id ../officeId}}active{{/ifCond}}"
+                                                        {{#ifCond this.id ../officeId}}selected{{/ifCond}}>
+                                                        {{this.name}}
+                                                    </option>
+                                                    {{/each}}
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                    </div>
+
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                            <button type="button" class="btn btn-primary">成立 GatePass</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -163,7 +242,7 @@
     const STORAGE_KEY = 'transferAssets'
     const transferArea = document.querySelector('#transferArea')
     const resetTransferAssetArray = document.querySelector('#resetTransferAssetArray')
-
+    const checkGP = document.querySelector('#checkGP')
     let assetArray = []
     initialTransferArea()
     formCheck.forEach(item => {
@@ -266,13 +345,41 @@
                     let id = item.getAttribute('data-id')
                     let originAssetArray = localStorage.getItem(STORAGE_KEY)
                     originAssetArray = JSON.parse(originAssetArray)
-                    console.log(originAssetArray)
+
                     originAssetArray = originAssetArray.filter(as => as.id !== id)
+
                     localStorage.setItem(STORAGE_KEY, JSON.stringify(originAssetArray))
-                    initialTransferArea()
+
+                    let rawData = ''
+
+
+                    formCheck.forEach(item => {
+                        item.checked = false
+
+                    })
+                    originAssetArray.forEach(asset => {
+                        formCheck.forEach(item => {
+                            let id = item.getAttribute('data-id')
+                            if (asset.id === id) {
+                                item.checked = true
+                            }
+
+                        })
+                        rawData += `
+                    <tr>
+                        <th scope="row"><a href="#">${asset.id}</a></th>
+                        <td>${asset.name}</td>
+                        <td>1</td>
+                        <td><button type="button" class="btn btn-outline-danger mt-2 removeFromTransferArea" data-id=${asset.id}>移除</button></td>
+                    </tr>
+                    `
+                    })
+                    transferArea.innerHTML = rawData
+
                     console.log(originAssetArray)
                 }
 
+                bindRemoveEvent()
             })
 
         })
@@ -397,16 +504,55 @@
 
 */
 
-    axios.get(`/api/offices`)
-        .then(function (response) {
-            // handle success
-            console.log(response)
 
 
+    checkGP.addEventListener('click', () => {
+        console.log('1. 讀取localstorage資料')
+        let originAssetArray = localStorage.getItem(STORAGE_KEY)
+        originAssetArray = JSON.parse(originAssetArray)
+        console.log(originAssetArray)
+        console.log('==== 原始資料 ====')
+        console.log('2. 送入後端請求資料')
+        let rawData = ''
+        let data = Promise.all(originAssetArray.map(item => {
+            return getAxiosData(item.id)
+        }))
+
+
+        console.log('==== render ====')
+        console.log(data)
+
+
+
+        data.then(d => {
+            // console.log(d.data)
+            d.forEach(item => {
+                console.log(item.data.data)
+                rawData += `
+            <tr>
+                <th scope="row">${item.data.data.id}</th>
+                <td><img src="https://5.imimg.com/data5/UZ/KL/RX/SELLER-4024816/cisco-switches-500x500.jpg"
+                        class="img-thumbnail" alt="..." style="width: 50px;height:50px;"></td>
+                <td>${item.data.data.name}</td>
+                <td>${item.data.data.Quantity}</td>
+                <td>${item.data.data.Office.name}</td>
+                
+            </tr>
+            `
+            })
+
+
+        }).then(() => {
+            const gatepassArea = document.querySelector('#gatepassArea')
+            gatepassArea.innerHTML = rawData
         })
-        .catch(function (error) {
-            // handle error
-            console.log(error);
-        })
 
+
+        console.log('==== render ====')
+
+
+    })
+    async function getAxiosData(id) {
+        return await axios.get(`/api/gatepassData/${id}`)
+    }
 </script>
