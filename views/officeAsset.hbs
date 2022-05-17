@@ -74,6 +74,7 @@
                         <th scope="col">Vendor</th>
                         <th scope="col">Model</th>
                         <th scope="col">Quantity</th>
+                        <th scope="col">Status</th>
                         <th scope="col">Office</th>
                         <th scope="col">qrcode</th>
                         {{!-- <th scope="col">Description</th> --}}
@@ -86,7 +87,8 @@
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault"
                                     data-id="{{this.id}}" data-name="{{this.name}}" data-Quantity="{{this.Quantity}}"
-                                    data-Office="{{this.Office.name}}" data-image="{{this.image}}">
+                                    data-Office="{{this.Office.name}}" data-image="{{this.image}}" {{#ifCond
+                                    this.statusId 3}}disabled{{/ifCond}}>
                             </div>
                         </th>
                         <th scope="row" class="">{{this.id}}</th>
@@ -97,6 +99,7 @@
                         <td>{{this.Vendor}}</td>
                         <td>{{this.Model}}</td>
                         <td>{{this.Quantity}}</td>
+                        <td>{{this.Status.name}}</td>
                         <td>{{this.Office.name}}</td>
                         <td><img src="{{this.qrcode}}" alt="" style="width:30px; height:30px;"></td>
                         {{!-- <td>{{this.Description}}</td> --}}

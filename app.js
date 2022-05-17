@@ -31,7 +31,7 @@ const db = require('./models')
 const Category = db.Category
 const Asset = db.Asset
 const Office = db.Office
-
+const Status = db.Status
 
 // QR code
 var QRCode = require('qrcode')
@@ -159,7 +159,7 @@ app.get('/officeAssets', (req, res) => {
     Asset.findAndCountAll({
       raw: true,
       nest: true,
-      include: [Category, Office],
+      include: [Category, Office, Status],
       order: [
         ['updated_at', 'DESC']
       ],
@@ -180,7 +180,7 @@ app.get('/officeAssets', (req, res) => {
         item.qrcode = url
       })
     })
-
+    console.log(assets.rows)
     res.render('officeAsset', { assets: assets.rows, pagination: getPagination(limit, page, assets.count), category, office, categoryId, officeId, searchName })
   }).catch(err => {
     console.log(err)
@@ -279,10 +279,14 @@ app.get('/createOfficeAsset', (req, res) => {
     Office.findAll({
       raw: true,
       nest: true
+    }),
+    Status.findAll({
+      raw: true,
+      nest: true
     })
   ])
-    .then(([category, office]) => {
-      res.render('createOfficeAsset', { category, office })
+    .then(([category, office, status]) => {
+      res.render('createOfficeAsset', { category, office, status })
     })
     .catch(err => {
       console.log(err)
@@ -295,12 +299,14 @@ app.post('/createOfficeAsset', upload.single('image'), (req, res) => {
   const { name, Vendor, Model, Quantity, Description } = req.body
   const categoryId = req.body.category_id
   const officeId = req.body.office_id
+  const statusId = req.body.status_id
   if (file) {
     console.log('傳入的檔案有圖片, 需要進行檔案處理')
     fs.readFile(file.path, (err, data) => {
       if (err) console.log('Error: ', err)
       fs.writeFile(`upload/${file.originalname}`, data, () => {
         return Asset.create({
+          statusId,
           categoryId,
           name,
           Vendor,
@@ -321,6 +327,7 @@ app.post('/createOfficeAsset', upload.single('image'), (req, res) => {
 
 
     Asset.create({
+      statusId,
       categoryId,
       name,
       Vendor,

@@ -19,6 +19,7 @@ module.exports = (sequelize, DataTypes) => {
     // associations can be defined here
     Asset.belongsTo(models.Category, { foreignKey: 'categoryId' })
     Asset.belongsTo(models.Office, { foreignKey: 'officeId' })
+    Asset.belongsTo(models.Status, { foreignKey: 'statusId' })
   };
   return Asset;
 };

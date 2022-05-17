@@ -3,7 +3,7 @@
         <h1 class="h3 font-weight-normal mb-3">新增資產</h1>
     </div>
     <div class="form-row mb-3">
-        <label class="form-label" for="category_id">Category</label>
+        <label class="form-label" for="category_id">類別</label>
         <select class="form-control" id="category_id" name="category_id">
             {{#each category}}
             <option value="{{this.id}}">{{this.name}}</option>
@@ -11,24 +11,32 @@
         </select>
     </div>
     <div class="form-row mb-3">
-        <label class="form-label" for="name">Name</label>
+        <label class="form-label" for="name">名稱</label>
         <input class="form-control" type="text" name="name" id="name" placeholder="輸入資產名稱" required>
     </div>
 
     <div class="form-row mb-3">
-        <label class="form-label" for="Vendor">Vendor</label>
+        <label class="form-label" for="Vendor">廠牌</label>
         <input class="form-control" type="text" name="Vendor" id="Vendor" placeholder="輸入資產廠牌" required>
     </div>
     <div class="form-row mb-3">
-        <label class="form-label" for="Model">Model</label>
+        <label class="form-label" for="Model">型號</label>
         <input class="form-control" type="text" name="Model" id="Model" placeholder="輸入資產型號" required>
     </div>
     <div class="form-row mb-3">
-        <label class="form-label" for="Quantity">Quantity</label>
+        <label class="form-label" for="Quantity">數量</label>
         <input class="form-control" type="text" name="Quantity" id="Quantity" placeholder="輸入資產數量" required>
     </div>
     <div class="form-row mb-3">
-        <label class="form-label" for="office_id">Office</label>
+        <label class="form-label" for="status_id">當前狀態</label>
+        <select class="form-control" id="status_id" name="status_id">
+            {{#each status}}
+            <option value="{{this.id}}">{{this.name}}</option>
+            {{/each}}
+        </select>
+    </div>
+    <div class="form-row mb-3">
+        <label class="form-label" for="office_id">所在位置</label>
         <select class="form-control" id="office_id" name="office_id">
             {{#each office}}
             <option value="{{this.id}}">{{this.name}}</option>
@@ -37,13 +45,13 @@
 
     </div>
     <div class="form-row mb-3">
-        <label class="form-label" for="Description">Description</label>
+        <label class="form-label" for="Description">描述</label>
         <input class="form-control" type="text" name="Description" id="Description" placeholder="輸入資產相關描述" required>
     </div>
     <div class="form-group">
         <label for="image">Image</label>
         <input type="file" class="form-control-file" id="image" name="image">
     </div>
-    <button type="submit" class="btn btn-primary">Submit</button>
-    <a class="btn btn-danger" href="/officeAssets">Return</a>
+    <button type="submit" class="btn btn-primary">提交</button>
+    <a class="btn btn-danger" href="/officeAssets">返回</a>
 </form>
