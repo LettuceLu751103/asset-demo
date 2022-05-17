@@ -13,6 +13,15 @@ const { Op } = require("sequelize");
 app.set('view engine', 'hbs')
 app.engine('hbs', exphbs({ extname: '.hbs', helpers: handlebarsHelpers }))
 
+// 圖片相關
+const multer = require('multer')
+const upload = multer({ dest: 'temp/' })
+app.use('/upload', express.static(__dirname + '/upload'))
+// 引入檔案處理
+const fs = require('fs')
+
+
+
 
 app.use(express.urlencoded({ extended: true }))
 app.use(methodOverride('_method'))
@@ -281,25 +290,52 @@ app.get('/createOfficeAsset', (req, res) => {
 
 })
 
-app.post('/createOfficeAsset', (req, res) => {
-
+app.post('/createOfficeAsset', upload.single('image'), (req, res) => {
+  const { file } = req
   const { name, Vendor, Model, Quantity, Description } = req.body
   const categoryId = req.body.category_id
   const officeId = req.body.office_id
-  Asset.create({
-    categoryId,
-    name,
-    Vendor,
-    Model,
-    Quantity,
-    officeId,
-    Description
-  }).then(() => {
-    res.redirect('/officeAssets')
-  })
-    .catch(err => {
-      console.log(err)
+  if (file) {
+    console.log('傳入的檔案有圖片, 需要進行檔案處理')
+    fs.readFile(file.path, (err, data) => {
+      if (err) console.log('Error: ', err)
+      fs.writeFile(`upload/${file.originalname}`, data, () => {
+        return Asset.create({
+          categoryId,
+          name,
+          Vendor,
+          Model,
+          Quantity,
+          officeId,
+          Description,
+          image: file ? `/upload/${file.originalname}` : null
+        }).then((asset) => {
+          // req.flash('success_messages', 'restaurant was successfully created')
+          res.redirect('/officeAssets')
+        })
+      })
     })
+  } else {
+    console.log('傳入的檔案沒有圖片')
+    console.log(req.body)
+
+
+    Asset.create({
+      categoryId,
+      name,
+      Vendor,
+      Model,
+      Quantity,
+      officeId,
+      Description
+    }).then(() => {
+      res.redirect('/officeAssets')
+    })
+      .catch(err => {
+        console.log(err)
+      })
+  }
+
 })
 
 

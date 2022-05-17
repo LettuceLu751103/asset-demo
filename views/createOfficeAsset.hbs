@@ -1,4 +1,4 @@
-<form action="/createOfficeAsset" method="POST">
+<form action="/createOfficeAsset" method="POST" enctype="multipart/form-data">
     <div class="mb-4 text-center">
         <h1 class="h3 font-weight-normal mb-3">新增資產</h1>
     </div>
@@ -14,6 +14,7 @@
         <label class="form-label" for="name">Name</label>
         <input class="form-control" type="text" name="name" id="name" placeholder="輸入資產名稱" required>
     </div>
+
     <div class="form-row mb-3">
         <label class="form-label" for="Vendor">Vendor</label>
         <input class="form-control" type="text" name="Vendor" id="Vendor" placeholder="輸入資產廠牌" required>
@@ -33,10 +34,15 @@
             <option value="{{this.id}}">{{this.name}}</option>
             {{/each}}
         </select>
+
     </div>
     <div class="form-row mb-3">
         <label class="form-label" for="Description">Description</label>
         <input class="form-control" type="text" name="Description" id="Description" placeholder="輸入資產相關描述" required>
+    </div>
+    <div class="form-group">
+        <label for="image">Image</label>
+        <input type="file" class="form-control-file" id="image" name="image">
     </div>
     <button type="submit" class="btn btn-primary">Submit</button>
     <a class="btn btn-danger" href="/officeAssets">Return</a>

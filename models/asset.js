@@ -6,7 +6,11 @@ module.exports = (sequelize, DataTypes) => {
     Model: DataTypes.STRING,
     Quantity: DataTypes.INTEGER,
     Description: DataTypes.STRING,
-    qrcode: DataTypes.TEXT('long')
+    qrcode: DataTypes.TEXT('long'),
+    image: {
+      type: DataTypes.STRING,
+      defaultValue: "https://ewr9gftwh9h.exactdn.com/wp-content/uploads/2018/01/Question-Mark.png?strip=all&lossy=1&resize=195%2C195",
+    }
   }, {
     underscored: true,
     modelName: 'Asset',

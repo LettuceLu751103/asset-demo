@@ -16,6 +16,7 @@ var QRCode = require('qrcode')
 // create gatepass 
 router.post('/gatepass/create', (req, res) => {
     console.log('收到創建 gatepass 請求')
+    console.log(req.body)
 })
 
 router.get('/gatepassData/:id', (req, res) => {
