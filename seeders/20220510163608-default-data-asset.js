@@ -1,21 +1,21 @@
 'use strict';
 
 const AssetName = [
-  { image: 'https://loremflickr.com/320/240/utility/?random=${Math.random()%20*%20100}', office_id: 13, category_id: 4, name: "主機", Vendor: "Generic", Model: "Generic", Quantity: 95, status_id: 1 }
-  , { image: 'https://loremflickr.com/320/240/utility/?random=${Math.random()%20*%20100}', office_id: 13, category_id: 4, name: "螢幕", Vendor: "Asus", Model: "VZ249", Quantity: 29, status_id: 2 }
-  , { image: 'https://loremflickr.com/320/240/utility/?random=${Math.random()%20*%20100}', office_id: 13, category_id: 4, name: "螢幕", Vendor: "Asus", Model: "VZ247", Quantity: 70, status_id: 3 }
-  , { image: 'https://loremflickr.com/320/240/utility/?random=${Math.random()%20*%20100}', office_id: 13, category_id: 4, name: "螢幕", Vendor: "Asus", Model: "VZ239", Quantity: 19, status_id: 4 }
-  , { image: 'https://loremflickr.com/320/240/utility/?random=${Math.random()%20*%20100}', office_id: 13, category_id: 4, name: "螢幕", Vendor: "Asus", Model: "VC239", Quantity: 2, status_id: 3 }
-  , { image: 'https://loremflickr.com/320/240/utility/?random=${Math.random()%20*%20100}', office_id: 13, category_id: 4, name: "螢幕", Vendor: "Philips", Model: "Philips", Quantity: 43, status_id: 4 }
-  , { image: 'https://loremflickr.com/320/240/utility/?random=${Math.random()%20*%20100}', office_id: 13, category_id: 4, name: "螢幕", Vendor: "Benq", Model: "Benq", Quantity: 6, status_id: 1 }
-  , { image: 'https://loremflickr.com/320/240/utility/?random=${Math.random()%20*%20100}', office_id: 13, category_id: 4, name: "螢幕", Vendor: "AOC", Model: "AOC", Quantity: 6, status_id: 2 }
-  , { image: 'https://loremflickr.com/320/240/utility/?random=${Math.random()%20*%20100}', office_id: 13, category_id: 4, name: "螢幕", Vendor: "LG", Model: "LG 24MK600", Quantity: 11, status_id: 4 }
-  , { image: 'https://loremflickr.com/320/240/utility/?random=${Math.random()%20*%20100}', office_id: 13, category_id: 4, name: "鍵盤", Vendor: "Logitech", Model: "K120", Quantity: 94, status_id: 3 }
-  , { image: 'https://loremflickr.com/320/240/utility/?random=${Math.random()%20*%20100}', office_id: 13, category_id: 4, name: "滑鼠", Vendor: "Logitech", Model: "Logitech", Quantity: 95, status_id: 2 }
-  , { image: 'https://loremflickr.com/320/240/utility/?random=${Math.random()%20*%20100}', office_id: 13, category_id: 4, name: "印表機 Printer HP 315", Vendor: "HP", Model: "HP 315", Quantity: 3, status_id: 1 }
-  , { image: 'https://loremflickr.com/320/240/utility/?random=${Math.random()%20*%20100}', office_id: 13, category_id: 4, name: "UPS APC-1400", Vendor: "UPS", Model: "APC", Quantity: 92, status_id: 1 }
-  , { image: 'https://loremflickr.com/320/240/utility/?random=${Math.random()%20*%20100}', office_id: 13, category_id: 4, name: "CCTV攝像頭 180度", Vendor: "Hkvision", Model: "180 angle", Quantity: 5, status_id: 1 }
-  , { image: 'https://loremflickr.com/320/240/utility/?random=${Math.random()%20*%20100}', office_id: 13, category_id: 4, name: "CCTV攝像頭 360度", Vendor: "Hkvision", Model: "360 angle", Quantity: 55, status_id: 1 }
+  { image: 'https://loremflickr.com/320/240/cisco/?random=${Math.random()%20*%20100}', office_id: 1, category_id: 4, name: "主機", Vendor: "Generic", Model: "Generic", Quantity: 1, status_id: 1 }
+  , { image: 'https://loremflickr.com/320/240/router/?random=${Math.random()%20*%20100}', office_id: 3, category_id: 1, name: "螢幕", Vendor: "Asus", Model: "VZ249", Quantity: 1, status_id: 2 }
+  , { image: 'https://loremflickr.com/320/240/server/?random=${Math.random()%20*%20100}', office_id: 5, category_id: 2, name: "螢幕", Vendor: "Asus", Model: "VZ247", Quantity: 1, status_id: 3 }
+  , { image: 'https://loremflickr.com/320/240/fly/?random=${Math.random()%20*%20100}', office_id: 7, category_id: 3, name: "螢幕", Vendor: "Asus", Model: "VZ239", Quantity: 1, status_id: 4 }
+  , { image: 'https://loremflickr.com/320/240/car/?random=${Math.random()%20*%20100}', office_id: 9, category_id: 4, name: "螢幕", Vendor: "Asus", Model: "VC239", Quantity: 1, status_id: 3 }
+  , { image: 'https://loremflickr.com/320/240/tiger/?random=${Math.random()%20*%20100}', office_id: 2, category_id: 1, name: "螢幕", Vendor: "Philips", Model: "Philips", Quantity: 1, status_id: 4 }
+  , { image: 'https://loremflickr.com/320/240/pig/?random=${Math.random()%20*%20100}', office_id: 4, category_id: 2, name: "螢幕", Vendor: "Benq", Model: "Benq", Quantity: 1, status_id: 1 }
+  , { image: 'https://loremflickr.com/320/240/mouse/?random=${Math.random()%20*%20100}', office_id: 6, category_id: 3, name: "螢幕", Vendor: "AOC", Model: "AOC", Quantity: 1, status_id: 2 }
+  , { image: 'https://loremflickr.com/320/240/keyboard/?random=${Math.random()%20*%20100}', office_id: 8, category_id: 1, name: "螢幕", Vendor: "LG", Model: "LG 24MK600", Quantity: 1, status_id: 4 }
+  , { image: 'https://loremflickr.com/320/240/computer/?random=${Math.random()%20*%20100}', office_id: 10, category_id: 1, name: "鍵盤", Vendor: "Logitech", Model: "K120", Quantity: 1, status_id: 3 }
+  , { image: 'https://loremflickr.com/320/240/fortinet/?random=${Math.random()%20*%20100}', office_id: 11, category_id: 2, name: "滑鼠", Vendor: "Logitech", Model: "Logitech", Quantity: 1, status_id: 2 }
+  , { image: 'https://loremflickr.com/320/240/cisco/?random=${Math.random()%20*%20100}', office_id: 12, category_id: 4, name: "印表機 Printer HP 315", Vendor: "HP", Model: "HP 315", Quantity: 1, status_id: 1 }
+  , { image: 'https://loremflickr.com/320/240/animal/?random=${Math.random()%20*%20100}', office_id: 13, category_id: 3, name: "UPS APC-1400", Vendor: "UPS", Model: "APC", Quantity: 1, status_id: 1 }
+  , { image: 'https://loremflickr.com/320/240/cat/?random=${Math.random()%20*%20100}', office_id: 2, category_id: 2, name: "CCTV攝像頭 180度", Vendor: "Hkvision", Model: "180 angle", Quantity: 1, status_id: 1 }
+  , { image: 'https://loremflickr.com/320/240/dog/?random=${Math.random()%20*%20100}', office_id: 4, category_id: 2, name: "CCTV攝像頭 360度", Vendor: "Hkvision", Model: "360 angle", Quantity: 1, status_id: 1 }
 ]
 const fakeData = [
   { office_id: 13, category_id: 4, name: "主機", Vendor: "Generic", Model: "Generic", Quantity: 95 }

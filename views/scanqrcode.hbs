@@ -1,0 +1,66 @@
+<div class="container">
+    <div class="row">
+        <div class="col-md-6 col-6">
+            <button class="btn btn-outline-primary btn-block" {{#ifCond package '1' }}disabled{{/ifCond}}
+                id="singleAssetDetail" style="height:150px;">查看資產詳情</button>
+        </div>
+        <div class="col-md-6 col-6">
+            <button class="btn btn-outline-primary btn-block" {{#ifCond package '0' }}disabled{{/ifCond}}
+                id="multipleAssetDetail" style="height:150px;">查看多個資產內容</button>
+        </div>
+    </div>
+    <div class="row mt-3">
+        <div class="col-md-6 col-6">
+            <button class="btn btn-outline-primary btn-block" {{#ifCond package '1' }}disabled{{/ifCond}}
+                id="singleAsset" style="height:150px;">單個資產到貨</button>
+        </div>
+        <div class="col-md-6 col-6">
+            <button class="btn btn-outline-primary btn-block" {{#ifCond package '0' }}disabled{{/ifCond}}
+                id="multipleAsset" style="height:150px;">多個資產到貨</button>
+        </div>
+    </div>
+    <div class="row mt-3">
+        <div class="col-md-6 col-6">
+            <button class="btn btn-outline-primary btn-block" {{#ifCond package '1' }}disabled{{/ifCond}}
+                id="modifyAsset" style="height:150px;">修改資產使用情況</button>
+        </div>
+        <div class="col-md-6 col-6">
+            <button class="btn btn-outline-primary btn-block" {{#ifCond package '1' }}disabled{{/ifCond}}
+                id="checkAsset" style="height:150px;">資產盤點</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const singleAssetDetail = document.querySelector('#singleAssetDetail')
+    const multipleAssetDetail = document.querySelector('#multipleAssetDetail')
+    const singleAsset = document.querySelector('#singleAsset')
+    const multipleAsset = document.querySelector('#multipleAsset')
+    const modifyAsset = document.querySelector('#modifyAsset')
+    const checkAsset = document.querySelector('#checkAsset')
+
+
+    singleAssetDetail.addEventListener('click', () => {
+        console.log('請求單個資產詳情')
+    })
+
+    multipleAssetDetail.addEventListener('click', () => {
+        console.log('請求多個資產詳情')
+    })
+
+    singleAsset.addEventListener('click', () => {
+        console.log('單個資產到貨')
+    })
+
+    multipleAsset.addEventListener('click', () => {
+        console.log('整包資產到貨')
+    })
+
+    modifyAsset.addEventListener('click', () => {
+        console.log('修改資產使用情況')
+    })
+
+    checkAsset.addEventListener('click', () => {
+        console.log('資產盤點')
+    })
+</script>

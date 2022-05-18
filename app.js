@@ -176,7 +176,7 @@ app.get('/officeAssets', (req, res) => {
     Office.findAll({ raw: true })
   ]).then(([assets, category, office]) => {
     assets.rows.forEach(item => {
-      QRCode.toDataURL(`http://10.4.100.241:3000/editAssets/${item.id}`, function (err, url) {
+      QRCode.toDataURL(`http://10.4.100.241:3000/scanqrcode?package=0&assetID=${item.id}`, function (err, url) {
         item.qrcode = url
       })
     })
@@ -185,6 +185,21 @@ app.get('/officeAssets', (req, res) => {
   }).catch(err => {
     console.log(err)
   })
+
+})
+
+app.get('/scanqrcode', (req, res) => {
+  console.log(req.query)
+  // 根據 package 判斷0是否個別資產QR code 或 1為多個資產QR code
+  if (req.query.package === '0') {
+    console.log('辨別為單個資產qrcode')
+    res.render('scanqrcode', { assetID: req.query.assetID, package: req.query.package })
+  } else {
+    console.log('辨別為整包資產')
+    res.render('scanqrcode', {
+      assetID: req.query.assetID, package: req.query.package
+    })
+  }
 
 })
 
