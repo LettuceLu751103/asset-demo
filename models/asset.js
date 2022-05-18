@@ -20,6 +20,11 @@ module.exports = (sequelize, DataTypes) => {
     Asset.belongsTo(models.Category, { foreignKey: 'categoryId' })
     Asset.belongsTo(models.Office, { foreignKey: 'officeId' })
     Asset.belongsTo(models.Status, { foreignKey: 'statusId' })
+    Asset.belongsToMany(models.Gatepass, {
+      through: models.Transfer,
+      foreignKey: 'AssetId',
+      as: 'TransferGatepass'
+    })
   };
   return Asset;
 };
