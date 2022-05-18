@@ -273,6 +273,11 @@ app.get('/gatepass', (req, res) => {
   })
     .then(gatepass => {
       console.log(gatepass)
+      gatepass.forEach(item => {
+        QRCode.toDataURL(`http://10.4.100.241:3000/scanqrcode?package=1&gatepassID=${item.id}`, function (err, url) {
+          item.qrcode = url
+        })
+      })
       return res.render('gatepass', { gatepass })
     })
     .catch(err => {
