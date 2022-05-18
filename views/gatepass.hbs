@@ -1,0 +1,113 @@
+<div class="container">
+    <nav class="nav  nav-tabs">
+        <a class="nav-link" href="/">首頁</a>
+        <a class="nav-link" aria-current="page" href="/categories">資產類別</a>
+        <a class="nav-link" href="/offices">辦公室類別</a>
+        <a class="nav-link" href="/officeAssets">辦公室資產</a>
+        <a class="nav-link active" href="#">GatePass</a>
+    </nav>
+
+    <div class="row mt-2">
+
+        <div class="col-md-12">
+
+            <form action="/officeAssets" method="get" class="form-inline">
+                <div class="col-3">
+                    <select class="form-select mt-2" aria-label="Default select example" id="officeSelector"
+                        name="officeId" disabled>
+                        <option value="" selected>全部辦公室</option>
+                        {{#each office}}
+                        <option value="{{this.id}}" class="{{#ifCond this.id ../officeId}}active{{/ifCond}}" {{#ifCond
+                            this.id ../officeId}}selected{{/ifCond}}>
+                            {{this.name}}
+                        </option>
+                        {{/each}}
+                    </select>
+                </div>
+                <div class="col-3">
+                    <select class="form-select mt-2" aria-label="Default select example" id="officeSelector"
+                        name="categoryId" disabled>
+                        <option value="" selected>全部類別</option>
+                        {{#each category}}
+                        <option value="{{this.id}}" class="{{#ifCond this.id ../categoryId}}active{{/ifCond}}" {{#ifCond
+                            this.id ../categoryId}}selected{{/ifCond}}>
+                            {{this.name}}
+                        </option>
+                        {{/each}}
+                    </select>
+                </div>
+                <div class="col-6">
+                    <div class="input-group mt-2">
+                        <input type="text" class="form-control" id="searchOffice" placeholder="搜尋 Gatepass"
+                            name="searchString" value="{{searchName}}" disabled>
+                        <div class=" input-group-append">
+                            <button class="btn btn-outline-secondary" type="submit" id="button-addon2"
+                                disabled>搜尋</button>
+                        </div>
+                    </div>
+                </div>
+
+            </form>
+            <table class="table table-hover mt-2">
+                <thead>
+                    <tr>
+                        <th scope="col">GP ID</th>
+                        <th scope="col">移轉品項</th>
+                        <th scope="col">移轉前位置</th>
+                        <th scope="col">移轉後位置</th>
+                        <th scope="col">當前GP狀態</th>
+                        <th scope="col">起單人</th>
+                        <th scope="col">qrcode</th>
+                        {{!-- <th scope="col">Description</th> --}}
+                    </tr>
+                </thead>
+                <tbody id="datatbody">
+                    {{#each gatepass}}
+                    <tr class="assetTr">
+                        <th scope="row" class="">{{this.id}}</th>
+                        <td>{{this.TransferAsset.name}}</td>
+                        <td>{{this.TransferAsset.Office.name}}</td>
+                        <td>{{this.Office.name}}</td>
+                        <td>{{#statusIdentify this.status}} {{/statusIdentify}}</td>
+                        <td>{{this.username}}</td>
+                        <td><img src="{{this.qrcode}}" alt="" style="width:30px; height:30px;"></td>
+                        {{!-- <td>{{this.Description}}</td> --}}
+                    </tr>
+                    {{/each}}
+                </tbody>
+            </table>
+            <nav aria-label="Page navigation example">
+                <ul class="pagination justify-content-center" id="dataPagination">
+                    <li class="page-item {{#ifCond pagination.currentPage 1}}disabled{{/ifCond}}">
+                        <a class="page-link" href="/officeAssets?page={{pagination.prev}}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    {{#each pagination.pages}}
+                    {{#ifCond this ../pagination.currentPage}}
+                    <li class="page-item active"><a class="page-link" href="#">{{this}}</a></li>
+                    {{else}}
+                    <li class="page-item">
+                        <a class="page-link" href="/officeAssets?page={{this}}">{{this}}</a>
+                    </li>
+                    {{/ifCond}}
+                    {{/each}}
+                    <li class="page-item {{#ifCond pagination.currentPage pagination.totalPage}}disabled{{/ifCond}}">
+                        <a class="page-link" href="/officeAssets?page={{pagination.next}}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+
+    </div>
+
+
+</div>
+
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script>
+
+
+</script>

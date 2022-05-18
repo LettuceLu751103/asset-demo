@@ -4,7 +4,7 @@
         <a class="nav-link" aria-current="page" href="/categories">資產類別</a>
         <a class="nav-link" href="/offices">辦公室類別</a>
         <a class="nav-link active" href="/officeAssets">辦公室資產</a>
-        <a class="nav-link" href="#">GatePass</a>
+        <a class="nav-link" href="/gatepass">GatePass</a>
     </nav>
 
     <div class="row mt-2">
@@ -548,24 +548,34 @@
 
         console.log(officeSelectorGP.value)
         const gatepassId = document.querySelectorAll('.gatepassId')
-        console.log('==== gatepassId ====')
-        const data = {}
-        const assetArray = []
-        gatepassId.forEach(item => {
-
-            console.log(typeof Number(item.innerHTML))
-            assetArray.push(Number(item.innerHTML))
-        })
-        data.assetId = assetArray
-        data.officeId = officeSelectorGP.value
-        console.log('2. 送到後端創建 gatepass ')
-        axios.post('/createGatepass', data)
-            .then(reply => {
-                console.log(reply)
-            }).catch(err => {
-                console.log(err)
+        if (officeSelectorGP.value === '') {
+            alert('請選擇要移轉的辦公室')
+        } else {
+            console.log('==== gatepassId ====')
+            const data = {}
+            const assetArray = []
+            gatepassId.forEach(item => {
+                assetArray.push(Number(item.innerHTML))
             })
-        console.log('3. 成功收到回應status, 清除 localstorage 資料, 跳轉 gatepass 頁面')
+            data.assetId = assetArray
+            data.officeId = officeSelectorGP.value
+            console.log('2. 送到後端創建 gatepass ')
+            axios.post('/createGatepass', data)
+                .then(reply => {
+                    if (reply.data.status === 200) {
+                        console.log('清空localstorage')
+                        localStorage.clear()
+                        console.log('成功寫入, 跳轉 gatepass 頁面')
+
+                        window.location.href = `/gatepass`;
+                    } else {
+                        console.log('失敗寫入...')
+                    }
+                }).catch(err => {
+                    console.log(err)
+                })
+        }
+
     })
     async function getAxiosData(id) {
         return await axios.get(`/api/gatepassData/${id}`)

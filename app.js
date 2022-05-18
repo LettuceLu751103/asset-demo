@@ -33,6 +33,7 @@ const Asset = db.Asset
 const Office = db.Office
 const Status = db.Status
 const Gatepass = db.Gatepass
+const Transfer = db.Transfer
 
 // QR code
 var QRCode = require('qrcode')
@@ -184,7 +185,7 @@ app.get('/officeAssets', (req, res) => {
         item.qrcode = url
       })
     })
-    console.log(assets.rows)
+    // console.log(assets.rows)
     res.render('officeAsset', { assets: assets.rows, pagination: getPagination(limit, page, assets.count), category, office, categoryId, officeId, searchName })
   }).catch(err => {
     console.log(err)
@@ -225,23 +226,54 @@ app.post('/createGatepass', (req, res) => {
   const { assetId, officeId } = req.body
   console.log(assetId)
   console.log(officeId)
-  res.json({ status: 200, message: 'OK' })
-  // Gatepass.create({
-  //   username: req.body.username,
-  //   status: Number(req.body.status),
-  //   OfficeId: OfficeId
-  // }).then(gatepass => {
-  //   console.log('當前創建的ID: ' + gatepass.dataValues.id)
-  //   res.send('成功寫入')
-  // })
+  Gatepass.create({
+    username: '生菜測試',
+    status: 0,
+    OfficeId: officeId
+  }).then(gatepass => {
+
+    const GatepassId = gatepass.dataValues.id
+    console.log('創建 gatepass 成功, gatepass ID: ' + GatepassId)
+    assetId.forEach(AssetId => {
+      console.log(AssetId)
+      // 這邊要多加一個將資產狀態改為移轉中
+      Transfer.create({
+        AssetId,
+        GatepassId
+      }).then(() => {
+        console.log('寫入成功')
+      }).catch(err => {
+        console.log(err)
+      })
+    })
+
+
+  }).then(() => {
+    return res.json({ status: 200, message: 'OK' })
+  }).catch(err => {
+    console.log(err)
+  })
+
 })
 
 // 測試 gatepass render get 請求
-app.get('/getGatepass', (req, res) => {
+app.get('/gatepass', (req, res) => {
   console.log('收到查詢 Gatepass 請求')
-  Gatepass.findAll({ raw: true, nest: true, include: [Office] })
+  Gatepass.findAll({
+    raw: true,
+    nest: true,
+    include: [
+      // 使用 attributes 可以過濾想要抓取的值
+      { model: Office, attributes: ['name'] },
+      { model: Asset, as: 'TransferAsset', include: { model: Office }, attributes: ['name', 'officeId'] }
+    ],
+    order: [
+      ['updated_at', 'DESC']
+    ],
+  })
     .then(gatepass => {
       console.log(gatepass)
+      return res.render('gatepass', { gatepass })
     })
     .catch(err => {
       console.log(err)
