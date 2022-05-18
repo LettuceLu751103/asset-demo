@@ -1,0 +1,28 @@
+<div class="container">
+    <div class="row">
+        <form action="/createGatepass" method="post">
+            <div class="form-group">
+                <label for="exampleInputEmail1">Username</label>
+                <input type="text" class="form-control" id="exampleInputEmail1" placeholder="輸入移轉者姓名" name="username">
+            </div>
+            <div class="form-group">
+
+                <select class="form-control" id="exampleFormControlSelect1" name="status">
+
+                    <option value="1">移轉中</option>
+                    <option value="2">接收完成</option>
+                    <option value="3">缺少部分資產</option>
+                </select>
+            </div>
+            <div class="form-group">
+
+                <select class="form-control" id="exampleFormControlSelect1" name="officeId">
+                    {{#each office}}
+                    <option value="{{this.id}}">{{this.name}}</option>
+                    {{/each}}
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+    </div>
+</div>

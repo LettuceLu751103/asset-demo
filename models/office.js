@@ -10,6 +10,7 @@ module.exports = (sequelize, DataTypes) => {
   Office.associate = function (models) {
     // associations can be defined here
     Office.hasMany(models.Asset, { foreignKey: 'officeId' })
+    Office.hasMany(models.Gatepass)
   };
   return Office;
 };

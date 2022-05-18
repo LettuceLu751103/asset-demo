@@ -32,6 +32,7 @@ const Category = db.Category
 const Asset = db.Asset
 const Office = db.Office
 const Status = db.Status
+const Gatepass = db.Gatepass
 
 // QR code
 var QRCode = require('qrcode')
@@ -42,6 +43,9 @@ const { apis } = require('./routes')
 
 app.use('/api', apis)
 
+// 接收前端 axios 需要使用.json()
+const bodyParser = require('body-parser')
+app.use(bodyParser.json())
 
 
 app.get('/', (req, res) => {
@@ -188,6 +192,65 @@ app.get('/officeAssets', (req, res) => {
 
 })
 
+
+// 測試 gatepass 表單關聯
+app.get('/createGatepass', (req, res) => {
+  console.log('收到gatepass頁面請求')
+  console.log('params: ')
+  console.log(req.query)
+  console.log('params: ')
+  const assetId = req.query.assetId
+  const officeId = req.query.officeId
+  console.log('=====================')
+  // console.log(assetId)
+  console.log(officeId)
+  assetId.forEach(asset => {
+    console.log(asset)
+  })
+  console.log('=====================')
+  Office.findAll({ raw: true })
+    .then(office => {
+      // console.log(office)
+      res.render('createGatepass', { office })
+    }).catch(err => {
+      console.log(err)
+    })
+
+})
+
+// 測試 gatepass post 請求
+app.post('/createGatepass', (req, res) => {
+  console.log('收到 post gatepass 請求')
+  console.log(req.body)
+  const { assetId, officeId } = req.body
+  console.log(assetId)
+  console.log(officeId)
+  res.json({ status: 200, message: 'OK' })
+  // Gatepass.create({
+  //   username: req.body.username,
+  //   status: Number(req.body.status),
+  //   OfficeId: OfficeId
+  // }).then(gatepass => {
+  //   console.log('當前創建的ID: ' + gatepass.dataValues.id)
+  //   res.send('成功寫入')
+  // })
+})
+
+// 測試 gatepass render get 請求
+app.get('/getGatepass', (req, res) => {
+  console.log('收到查詢 Gatepass 請求')
+  Gatepass.findAll({ raw: true, nest: true, include: [Office] })
+    .then(gatepass => {
+      console.log(gatepass)
+    })
+    .catch(err => {
+      console.log(err)
+    })
+})
+
+
+
+// 掃描 QR code 入口
 app.get('/scanqrcode', (req, res) => {
   console.log(req.query)
   // 根據 package 判斷0是否個別資產QR code 或 1為多個資產QR code
