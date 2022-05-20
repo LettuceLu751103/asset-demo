@@ -17,6 +17,7 @@ app.engine('hbs', exphbs({ extname: '.hbs', helpers: handlebarsHelpers }))
 const multer = require('multer')
 const upload = multer({ dest: 'temp/' })
 app.use('/upload', express.static(__dirname + '/upload'))
+app.use(express.static('public'))
 // 引入檔案處理
 const fs = require('fs')
 
@@ -234,6 +235,7 @@ app.post('/createGatepass', (req, res) => {
 
     const GatepassId = gatepass.dataValues.id
     console.log('創建 gatepass 成功, gatepass ID: ' + GatepassId)
+    // 產生 QR code , 將結果寫入 DB
     assetId.forEach(AssetId => {
       console.log(AssetId)
       // 這邊要多加一個將資產狀態改為移轉中
@@ -259,33 +261,124 @@ app.post('/createGatepass', (req, res) => {
 // 測試 gatepass render get 請求
 app.get('/gatepass', (req, res) => {
   console.log('收到查詢 Gatepass 請求')
+
+
   Gatepass.findAll({
-    raw: true,
+    // raw: true,
     nest: true,
     include: [
-      // 使用 attributes 可以過濾想要抓取的值
       { model: Office, attributes: ['name'] },
-      { model: Asset, as: 'TransferAsset', include: { model: Office }, attributes: ['name', 'officeId'] }
+      {
+        model: Asset,
+        as: 'TransferAsset',
+        nest: true,
+        raw: true,
+        include: { model: Office },
+        // attributes: ['name', 'officeId']
+      }
+    ]
+  }).then(gatepass => {
+
+    gatepass = gatepass.map(gp => ({
+      ...gp.dataValues,
+      ...gp.Office.dataValues,
+
+    }))
+    console.log(gatepass)
+    console.log('=====================================')
+
+
+    gatepass.forEach(item => {
+      QRCode.toDataURL(`http://10.4.100.241:3000/scanqrcode?package=1&gatepassID=${item.id}`, function (err, url) {
+        item.qrcode = url
+      })
+    })
+    // return res.json({ gatepass })
+    return res.render('gatepass', { gatepass })
+  }).catch(err => {
+    console.log(err)
+  })
+
+
+
+
+
+
+
+  // Gatepass.findAll({
+  //   raw: true,
+  //   nest: true,
+  //   include: [
+  //     // 使用 attributes 可以過濾想要抓取的值
+  //     { model: Office, attributes: ['name'] },
+  //     { model: Asset, as: 'TransferAsset', include: { model: Office }, attributes: ['name', 'officeId'] }
+  //   ],
+  //   order: [
+  //     ['updated_at', 'DESC']
+  //   ],
+  // })
+  //   .then(gatepass => {
+  //     console.log(gatepass)
+  //     gatepass.forEach(item => {
+  //       QRCode.toDataURL(`http://10.4.100.241:3000/scanqrcode?package=1&gatepassID=${item.id}`, function (err, url) {
+  //         item.qrcode = url
+  //       })
+  //     })
+  //     return res.render('gatepass', { gatepass })
+  //   })
+  //   .catch(err => {
+  //     console.log(err)
+  //   })
+})
+
+// gatepass render get api 
+app.get('/api/gatepass', (req, res) => {
+  console.log('收到查詢 Gatepass 請求')
+
+
+  Gatepass.findAll({
+    nest: true,
+    include: [
+      { model: Office, attributes: ['name'] },
+      {
+        model: Asset,
+        as: 'TransferAsset',
+        nest: true,
+        raw: true,
+        include: { model: Office },
+        // attributes: ['name', 'officeId']
+      }
     ],
     order: [
       ['updated_at', 'DESC']
     ],
-  })
-    .then(gatepass => {
-      console.log(gatepass)
-      gatepass.forEach(item => {
-        QRCode.toDataURL(`http://10.4.100.241:3000/scanqrcode?package=1&gatepassID=${item.id}`, function (err, url) {
-          item.qrcode = url
-        })
+  }).then(gatepass => {
+
+    gatepass = gatepass.map(gp => ({
+      ...gp.dataValues,
+      ...gp.Office.dataValues,
+
+    }))
+    // console.log(gatepass)
+    console.log('=====================================')
+
+
+    gatepass.forEach(item => {
+      QRCode.toDataURL(`http://10.4.100.241:3000/scanqrcode?package=1&gatepassID=${item.id}`, function (err, url) {
+        item.qrcode = url
       })
-      return res.render('gatepass', { gatepass })
+
     })
-    .catch(err => {
-      console.log(err)
-    })
+    // console.log(url)
+    // console.log(gatepass)
+    return res.json({ gatepass })
+
+  }).catch(err => {
+    console.log(err)
+  })
+
+
 })
-
-
 
 // 掃描 QR code 入口
 app.get('/scanqrcode', (req, res) => {

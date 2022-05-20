@@ -5,6 +5,7 @@
         <a class="nav-link" href="/offices">辦公室類別</a>
         <a class="nav-link" href="/officeAssets">辦公室資產</a>
         <a class="nav-link active" href="#">GatePass</a>
+        <a class="nav-link" href="/scanqrcode">QR code入口</a>
     </nav>
 
     <div class="row mt-2">
@@ -58,22 +59,13 @@
                         <th scope="col">當前GP狀態</th>
                         <th scope="col">起單人</th>
                         <th scope="col">qrcode</th>
+                        <th scope="col">起單時間</th>
+                        <th scope="col">修改時間</th>
                         {{!-- <th scope="col">Description</th> --}}
                     </tr>
                 </thead>
                 <tbody id="datatbody">
-                    {{#each gatepass}}
-                    <tr class="assetTr">
-                        <th scope="row" class="">{{this.id}}</th>
-                        <td>{{this.TransferAsset.name}}</td>
-                        <td>{{this.TransferAsset.Office.name}}</td>
-                        <td>{{this.Office.name}}</td>
-                        <td>{{#statusIdentify this.status}} {{/statusIdentify}}</td>
-                        <td>{{this.username}}</td>
-                        <td><img src="{{this.qrcode}}" alt="" style="width:30px; height:30px;"></td>
-                        {{!-- <td>{{this.Description}}</td> --}}
-                    </tr>
-                    {{/each}}
+                    {{!-- 要放 gatepass 資料的地方 --}}
                 </tbody>
             </table>
             <nav aria-label="Page navigation example">
@@ -103,11 +95,76 @@
 
     </div>
 
-
+    <div id="qrcodeCanvas"></div>
 </div>
 
 <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 <script>
 
+    const datatbody = document.querySelector('#datatbody')
+    axios.get('/api/gatepass').then(response => {
 
+
+
+        if (response.status === 200) {
+            console.log(response.data.gatepass)
+            const gatepass = response.data.gatepass
+            let rawHtml = ''
+
+            gatepass.forEach(gp => {
+
+                console.log(gp)
+
+
+                rawHtml += `
+                    <tr class="assetTr">
+                    <th scope="row" class="">${gp.id}</th>
+                    <td>
+                `
+                let ulArea = ''
+                gp.TransferAsset.forEach(asset => {
+
+                    ulArea += `
+                    <ul>${asset.name}</ul>
+                    `
+                })
+                rawHtml += ulArea + `</td><td>`
+
+
+                let rawHtmlbeforeOfficeArea = ''
+                gp.TransferAsset.forEach(asset => {
+
+                    rawHtmlbeforeOfficeArea += `
+                    <ul>${asset.Office.name}</ul>
+                    `
+                })
+                rawHtml += rawHtmlbeforeOfficeArea
+                rawHtml += `</td><td id="gatepass_AfterOffice">${gp.Office.name}</td><td id="gatepass_status">`
+                if (gp.status === 0) {
+                    rawHtml += '移轉中'
+                } else if (gp.status === 1) {
+                    rawHtml += '移轉完成'
+                } else if (gp.status === 2) {
+                    rawHtml += '資產少缺'
+                } else {
+                    rawHtml += '未知'
+                }
+
+                rawHtml += `</td>
+                        <td id="gatepass_username">${gp.username}</td>
+                        <td><img src="#" alt="" style="width:30px; height:30px;" id="gatepass_qrcode">
+                        </td>`
+
+                rawHtml += `
+                <td id="gatepass_username">`+ moment(gp.createdAt).format('lll') + `</td>
+                `
+
+
+
+            })
+            datatbody.innerHTML = rawHtml
+
+
+        }
+    })
 </script>
