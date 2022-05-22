@@ -246,7 +246,19 @@ app.post('/createGatepass', (req, res) => {
         }
       ).then(gp => {
         // 利用 gatepass.id 產生 QRcode, 並寫入 Gatepass table
-        const qrcode = `http://10.4.100.241:3000/scanqrcode?package=1&gatepassId=${gp.id}`
+        const qrcodeContent = `http://10.4.100.241:3000/scanqrcode?package=1&gatepassId=${gp.id}`
+        const qrcode = `./images/qrcode/gatepasses/${gp.id}.png`
+        // 針對 gatepass 產生專屬 QR code
+        QRCode.toFile(`./public/images/qrcode/gatepasses/${gp.id}.png`, qrcodeContent, {
+          color: {
+            dark: '#00F',  // Blue dots
+            light: '#0000' // Transparent background
+          }
+        }, function (err, success) {
+          if (err) throw err
+          console.log(success)
+        })
+
         Gatepass.findByPk(gp.id)
           .then(gatepassData => {
             return gatepassData.update({
