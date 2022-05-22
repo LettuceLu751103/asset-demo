@@ -225,36 +225,77 @@ app.post('/createGatepass', (req, res) => {
   console.log('收到 post gatepass 請求')
   console.log(req.body)
   const { assetId, officeId } = req.body
-  console.log(assetId)
-  console.log(officeId)
-  Gatepass.create({
-    username: '生菜測試',
-    status: 0,
-    OfficeId: officeId
-  }).then(gatepass => {
+  if (officeId === '') {
+    return res.json({ status: '404', message: 'officeId is null!!!' })
+  }
+  else if (assetId.length !== 0) {
+    console.log('傳進來是有資產的')
+    Asset.findByPk(assetId[0], {
+      raw: true
+    }).then(asset => {
+      // 獲取資產 b_office_id
+      const b_office_id = asset.officeId
+      // 有了三個必填參數, officeId, AssetId, b_office_id, 寫入 gatepass table
+      Gatepass.create(
+        {
+          username: '生菜測試',
+          status: 0,
+          OfficeId: officeId,
+          b_office_id,
+          quantity: assetId.length
+        }
+      ).then(gp => {
+        // 利用 gatepass.id 產生 QRcode, 並寫入 Gatepass table
+        const qrcode = `http://10.4.100.241:3000/scanqrcode?package=1&gatepassId=${gp.id}`
+        Gatepass.findByPk(gp.id)
+          .then(gatepassData => {
+            return gatepassData.update({
+              qrcode
+            })
+          })
+          .catch(err => {
+            console.log(err)
+          })
 
-    const GatepassId = gatepass.dataValues.id
-    console.log('創建 gatepass 成功, gatepass ID: ' + GatepassId)
-    // 產生 QR code , 將結果寫入 DB
-    assetId.forEach(AssetId => {
-      console.log(AssetId)
-      // 這邊要多加一個將資產狀態改為移轉中
-      Transfer.create({
-        AssetId,
-        GatepassId
-      }).then(() => {
-        console.log('寫入成功')
-      }).catch(err => {
+        // 將資產寫入 Transfer table
+        assetId.forEach(AssetId => {
+
+
+          Transfer.create({
+            AssetId,
+            GatepassId: gp.id
+          }, { raw: true }).then((tf) => {
+            // 將資產狀態修改為移轉中
+            Asset.findByPk(tf.dataValues.AssetId)
+              .then(asset => {
+                return asset.update({
+                  status_id: 3
+                })
+              })
+              .catch(err => {
+                console.log(err)
+              })
+          }).catch(err => {
+            console.log(err)
+          })
+        })
+
+      })
+        .catch(err => {
+          console.log(err)
+        })
+
+    })
+      .then(() => {
+        return res.json({ status: 200, message: 'create gatepass succeed!!!' })
+      })
+      .catch(err => {
         console.log(err)
       })
-    })
+  } else {
+    return res.json({ status: '404', message: 'create gatepass failed!!!' })
+  }
 
-
-  }).then(() => {
-    return res.json({ status: 200, message: 'OK' })
-  }).catch(err => {
-    console.log(err)
-  })
 
 })
 
@@ -359,7 +400,7 @@ app.get('/api/gatepass', (req, res) => {
       ...gp.Office.dataValues,
 
     }))
-    // console.log(gatepass)
+    console.log(gatepass)
     console.log('=====================================')
 
 
