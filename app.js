@@ -8,7 +8,7 @@ const methodOverride = require('method-override')
 const bcrypt = require('bcryptjs')
 const app = express()
 const PORT = 3000
-const { Op } = require("sequelize");
+const { Op, NUMBER } = require("sequelize");
 
 app.set('view engine', 'hbs')
 app.engine('hbs', exphbs({ extname: '.hbs', helpers: handlebarsHelpers }))
@@ -352,36 +352,6 @@ app.get('/gatepass', (req, res) => {
     console.log(err)
   })
 
-
-
-
-
-
-
-  // Gatepass.findAll({
-  //   raw: true,
-  //   nest: true,
-  //   include: [
-  //     // 使用 attributes 可以過濾想要抓取的值
-  //     { model: Office, attributes: ['name'] },
-  //     { model: Asset, as: 'TransferAsset', include: { model: Office }, attributes: ['name', 'officeId'] }
-  //   ],
-  //   order: [
-  //     ['updated_at', 'DESC']
-  //   ],
-  // })
-  //   .then(gatepass => {
-  //     console.log(gatepass)
-  //     gatepass.forEach(item => {
-  //       QRCode.toDataURL(`http://10.4.100.241:3000/scanqrcode?package=1&gatepassID=${item.id}`, function (err, url) {
-  //         item.qrcode = url
-  //       })
-  //     })
-  //     return res.render('gatepass', { gatepass })
-  //   })
-  //   .catch(err => {
-  //     console.log(err)
-  //   })
 })
 
 // gatepass render get api 
@@ -444,9 +414,48 @@ app.get('/scanqrcode', (req, res) => {
   } else {
     console.log('辨別為整包資產')
     res.render('scanqrcode', {
-      assetID: req.query.assetID, package: req.query.package
+      gatepassId: req.query.gatepassId, package: req.query.package
     })
   }
+
+})
+
+// 整包 gatepass 查詢 API
+app.post('/api/gatepass/package', (req, res) => {
+  console.log('收到查詢整包 gatepass 請求')
+
+  const { gatepassId } = req.body
+  console.log(gatepassId)
+  Promise.all([
+    Transfer.findAll(
+      {
+        raw: true,
+        nest: true,
+        where: {
+          GatepassId: gatepassId
+        }
+      }),
+    Asset.findAll({
+      raw: true, nest: true
+    })
+  ])
+    .then(([transfer, assets]) => {
+      // console.log(transfer)
+      const b = transfer.map(function (tf) {
+        const a = assets.find(at => (
+          at.id === tf.AssetId
+        ))
+        return a
+
+      })
+      // console.log(b)
+      res.json({ status: 200, message: '返回數據', response: b })
+    })
+
+
+
+
+
 
 })
 
