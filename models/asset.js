@@ -11,7 +11,8 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       defaultValue: "https://ewr9gftwh9h.exactdn.com/wp-content/uploads/2018/01/Question-Mark.png?strip=all&lossy=1&resize=195%2C195",
     },
-    status_id: DataTypes.INTEGER
+    status_id: DataTypes.INTEGER,
+    office_id: DataTypes.INTEGER,
   }, {
     underscored: true,
     modelName: 'Asset',

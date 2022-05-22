@@ -230,6 +230,7 @@ app.post('/createGatepass', (req, res) => {
   }
   else if (assetId.length !== 0) {
     console.log('傳進來是有資產的')
+    console.log(assetId)
     Asset.findByPk(assetId[0], {
       raw: true
     }).then(asset => {
@@ -242,10 +243,12 @@ app.post('/createGatepass', (req, res) => {
           status: 0,
           OfficeId: officeId,
           b_office_id,
+          a_office_id: 20,
           quantity: assetId.length
         }
       ).then(gp => {
         // 利用 gatepass.id 產生 QRcode, 並寫入 Gatepass table
+        console.log(gp.id)
         const qrcodeContent = `http://10.4.100.241:3000/scanqrcode?package=1&gatepassId=${gp.id}`
         const qrcode = `./images/qrcode/gatepasses/${gp.id}.png`
         // 針對 gatepass 產生專屬 QR code
@@ -271,8 +274,6 @@ app.post('/createGatepass', (req, res) => {
 
         // 將資產寫入 Transfer table
         assetId.forEach(AssetId => {
-
-
           Transfer.create({
             AssetId,
             GatepassId: gp.id
@@ -360,9 +361,12 @@ app.get('/api/gatepass', (req, res) => {
 
 
   Gatepass.findAll({
+    // raw: true,
     nest: true,
     include: [
-      { model: Office, attributes: ['name'] },
+      { model: Office, as: 'bofficeId' },
+      { model: Office },
+      // { model: Office, as: 'aofficeId' },
       {
         model: Asset,
         as: 'TransferAsset',
@@ -376,12 +380,14 @@ app.get('/api/gatepass', (req, res) => {
       ['updated_at', 'DESC']
     ],
   }).then(gatepass => {
-
+    console.log(gatepass)
     gatepass = gatepass.map(gp => ({
       ...gp.dataValues,
-      ...gp.Office.dataValues,
+      // ...gp.Office.dataValues,
 
     }))
+    console.log('=====================================')
+
     console.log(gatepass)
     console.log('=====================================')
 
@@ -407,23 +413,70 @@ app.get('/api/gatepass', (req, res) => {
 // 掃描 QR code 入口
 app.get('/scanqrcode', (req, res) => {
   console.log(req.query)
+  const assetID = req.query.assetID | 0
+  const package = req.query.package | 0
+  const gatepassId = req.query.gatepassId
   // 根據 package 判斷0是否個別資產QR code 或 1為多個資產QR code
+
   if (req.query.package === '0') {
     console.log('辨別為單個資產qrcode')
-    res.render('scanqrcode', { assetID: req.query.assetID, package: req.query.package })
+    res.render('scanqrcode', { assetID: assetID, package: package })
   } else {
     console.log('辨別為整包資產')
-    res.render('scanqrcode', {
-      gatepassId: req.query.gatepassId, package: req.query.package
-    })
+    console.log(req.query.gatepassId)
+    Gatepass.findByPk(req.query.gatepassId)
+      .then(gp => {
+        // console.log(gp.status)
+        console.log(gp)
+        res.render('scanqrcode', {
+          gatepassId: req.query.gatepassId, gatepassStatus: gp.status, package: req.query.package
+        })
+      })
+      .catch(err => {
+        console.log(err)
+      })
+
   }
+
+
 
 })
 
 // 整包 gatepass 查詢 API
 app.post('/api/gatepass/package', (req, res) => {
   console.log('收到查詢整包 gatepass 請求')
+  const { gatepassId } = req.body
+  console.log(gatepassId)
+  Promise.all([
+    Transfer.findAll(
+      {
+        raw: true,
+        nest: true,
+        where: {
+          GatepassId: gatepassId
+        }
+      }),
+    Asset.findAll({
+      raw: true, nest: true, include: [Status]
+    })
+  ])
+    .then(([transfer, assets]) => {
+      // console.log(transfer)
+      const b = transfer.map(function (tf) {
+        const a = assets.find(at => (
+          at.id === tf.AssetId
+        ))
+        return a
 
+      })
+      res.json({ status: 200, message: '返回數據', response: b })
+    })
+})
+
+
+// 整包 gatepass 到貨 API
+app.post('/api/gatepass/package/received', (req, res) => {
+  console.log('收到整包 gatepass 到貨請求')
   const { gatepassId } = req.body
   console.log(gatepassId)
   Promise.all([
@@ -437,9 +490,12 @@ app.post('/api/gatepass/package', (req, res) => {
       }),
     Asset.findAll({
       raw: true, nest: true
+    }),
+    Gatepass.findAll({
+      raw: true, nest: true
     })
   ])
-    .then(([transfer, assets]) => {
+    .then(([transfer, assets, gatepass]) => {
       // console.log(transfer)
       const b = transfer.map(function (tf) {
         const a = assets.find(at => (
@@ -448,15 +504,36 @@ app.post('/api/gatepass/package', (req, res) => {
         return a
 
       })
+      // 查到當前 gatepass 所有資產 b, 進入 Asset table 修改該資產狀態
       // console.log(b)
-      res.json({ status: 200, message: '返回數據', response: b })
+      // 修改 gatepass status = 1, 狀態移轉完成
+      Gatepass.findByPk(gatepassId)
+        .then(gp => {
+          console.log('修改 => 移轉完成')
+          return gp.update({
+            status: 1
+          })
+        })
+      // 修改 Transfer table 中個別資產移轉狀態為 已接收 received = 1, Asset table 中個別資產狀態為 閒置中 status_id = 1
+
+      b.forEach(asset => {
+        console.log(asset.id)
+        Promise.all([Transfer.findOne({ where: { AssetId: asset.id } }), Asset.findByPk(asset.id), Gatepass.findByPk(gatepassId, { raw: true })])
+          .then(([transfer, asset, gatepass]) => {
+            console.log('修改tf狀態')
+            transfer.update({
+              received: 1
+            })
+            console.log('修改at狀態')
+            console.log(gatepass.OfficeId)
+            asset.update({
+              status_id: 1,
+              office_id: gatepass.OfficeId
+            })
+          })
+      })
+      res.json({ status: 200, message: '返回數據', response: b, gatepassStatus: 1 })
     })
-
-
-
-
-
-
 })
 
 app.get('/api/officeAssets', (req, res) => {

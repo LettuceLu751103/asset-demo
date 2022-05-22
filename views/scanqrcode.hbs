@@ -17,7 +17,8 @@
         </div>
         <div class="col-md-6 col-6">
             <button class="btn {{#ifCond package '0' }}btn-danger{{else}} btn-outline-primary{{/ifCond}} btn-block"
-                {{#ifCond package '0' }}disabled{{/ifCond}} id="multipleAsset" style="height:150px;">多個資產到貨</button>
+                {{#ifCond package '0' }}disabled{{/ifCond}} id="multipleAsset" data-id="{{gatepassId}}" style="
+                height:150px;">多個資產到貨</button>
         </div>
     </div>
     <div class="row mt-3">
@@ -66,6 +67,13 @@
     const checkAsset = document.querySelector('#checkAsset')
 
 
+    const gatepassStatus = {{{ gatepassStatus }}}
+    if (gatepassStatus === 1) {
+        multipleAsset.disabled = true
+        multipleAsset.innerHTML = 'gatepass 已到貨'
+        multipleAsset.classList.remove('btn-outline-primary')
+        multipleAsset.classList.add('btn-success')
+    }
     singleAssetDetail.addEventListener('click', () => {
         console.log('請求單個資產詳情')
     })
@@ -82,18 +90,20 @@
                     const multipleAssetDetail_Modal_body = document.querySelector('#multipleAssetDetail-Modal-body')
                     let rawHtml = `
                     <div class='row'>
-                            <div class='col-md-4'>圖片</div>
-                            <div class='col-md-4'>名稱</div>
-                            <div class='col-md-4'>數量</div>
+                            <div class='col-md-3'>圖片</div>
+                            <div class='col-md-3'>名稱</div>
+                            <div class='col-md-3'>數量</div>
+                            <div class='col-md-3'>當前狀態</div>
                     </div>
                     `
                     reply.data.response.forEach(asset => {
 
                         rawHtml += `
                         <div class='row mt-1'>
-                            <div class='col-md-4'><img src='${asset.image}' style='width:80px;height:80px;'></div>
-                            <div class='col-md-4'>${asset.name}</div>
-                            <div class='col-md-4'>${asset.Quantity}</div>
+                            <div class='col-md-3'><img src='${asset.image}' style='width:80px;height:80px;'></div>
+                            <div class='col-md-3'>${asset.name}</div>
+                            <div class='col-md-3'>${asset.Quantity}</div>
+                            <div class='col-md-3'>${asset.Status.name}</div>
                         </div>
                         `
                     })
@@ -112,7 +122,28 @@
 
     multipleAsset.addEventListener('click', () => {
         console.log('整包資產到貨')
-
+        let conformAllAssetsStatus = confirm('確認當前所有資產到貨?')
+        if (conformAllAssetsStatus) {
+            console.log('準備到後端修改當前gatepass資產的狀態')
+            const gatepassId = multipleAsset.getAttribute('data-id')
+            axios.post('/api/gatepass/package/received', { gatepassId })
+                .then(reply => {
+                    console.log(reply.data.gatepassStatus)
+                    if (reply.data.status === 200) {
+                        alert('貨品已全部到貨, 狀態已修改, 關閉到貨按鈕')
+                        multipleAsset.disabled = true
+                        multipleAsset.innerHTML = 'gatepass 已到貨'
+                        multipleAsset.classList.remove('btn-outline-primary')
+                        multipleAsset.classList.add('btn-success')
+                    } else {
+                        console.log('失敗請求...')
+                    }
+                }).catch(err => {
+                    console.log(err)
+                })
+        } else {
+            console.log('返回當前頁')
+        }
     })
 
     modifyAsset.addEventListener('click', () => {

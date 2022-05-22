@@ -36,7 +36,19 @@ module.exports = (sequelize, DataTypes) => {
   });
   Gatepass.associate = function (models) {
     // associations can be defined here
-    Gatepass.belongsTo(models.Office)
+    Gatepass.belongsTo(models.Office, {
+      as: 'bofficeId',
+      foreignKey: 'b_office_id',
+    })
+    Gatepass.belongsTo(models.Office, {
+      // as: 'aofficeId',
+      foreignKey: 'office_id',
+    })
+    // Gatepass.belongsTo(models.Office, {
+    //   as: 'bofficeId',
+    //   foreignKey: 'b_office_id',
+    // })
+
     Gatepass.belongsToMany(models.Asset, {
       through: models.Transfer,
       foreignKey: 'GatepassId',

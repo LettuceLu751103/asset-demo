@@ -15,7 +15,11 @@ module.exports = {
         `b_office_id`,
         {
           type: Sequelize.INTEGER,
-          allowNull: false
+          allowNull: false,
+          references: {
+            model: 'Offices',
+            key: 'id'
+          }
         }),
     ])
 

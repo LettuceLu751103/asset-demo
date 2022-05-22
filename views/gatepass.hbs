@@ -107,7 +107,9 @@
 
 
         if (response.status === 200) {
+            console.log('========================')
             console.log(response.data.gatepass)
+            console.log('========================')
             const gatepass = response.data.gatepass
             let rawHtml = ''
 
@@ -130,14 +132,10 @@
                 })
                 rawHtml += ulArea + `</td><td>`
 
-
                 let rawHtmlbeforeOfficeArea = ''
-                gp.TransferAsset.forEach(asset => {
-
-                    rawHtmlbeforeOfficeArea += `
-                    <ul>${asset.Office.name}</ul>
+                rawHtmlbeforeOfficeArea += `
+                    <ul>${gp.bofficeId.name}</ul>
                     `
-                })
                 rawHtml += rawHtmlbeforeOfficeArea
                 rawHtml += `</td><td id="gatepass_AfterOffice">${gp.Office.name}</td><td id="gatepass_status">`
                 if (gp.status === 0) {
@@ -157,6 +155,9 @@
 
                 rawHtml += `
                 <td id="gatepass_username">`+ moment(gp.createdAt).format('lll') + `</td>
+                `
+                rawHtml += `
+                <td id="gatepass_username">`+ moment(gp.updatedAt).format('lll') + `</td>
                 `
 
 
