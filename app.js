@@ -413,14 +413,16 @@ app.get('/api/gatepass', (req, res) => {
 // 掃描 QR code 入口
 app.get('/scanqrcode', (req, res) => {
   console.log(req.query)
-  const assetID = req.query.assetID | 0
+  const assetId = req.query.assetId | 0
   const package = req.query.package | 0
   const gatepassId = req.query.gatepassId
   // 根據 package 判斷0是否個別資產QR code 或 1為多個資產QR code
 
   if (req.query.package === '0') {
     console.log('辨別為單個資產qrcode')
-    res.render('scanqrcode', { assetID: assetID, package: package })
+    console.log('package: ' + package)
+    console.log('assetId: ' + assetId)
+    res.render('scanqrcode', { assetId: assetId, package: package, gatepassStatus: 0, gatepassId: 0, })
   } else {
     console.log('辨別為整包資產')
     console.log(req.query.gatepassId)
@@ -429,7 +431,7 @@ app.get('/scanqrcode', (req, res) => {
         // console.log(gp.status)
         console.log(gp)
         res.render('scanqrcode', {
-          gatepassId: req.query.gatepassId, gatepassStatus: gp.status, package: req.query.package
+          gatepassId: req.query.gatepassId, gatepassStatus: gp.status, package: package, assetId: ''
         })
       })
       .catch(err => {
@@ -442,6 +444,29 @@ app.get('/scanqrcode', (req, res) => {
 
 })
 
+// 單個 Asset 查詢 API
+app.post('/api/qrcode/asset', (req, res) => {
+  console.log('收到 qrcode 查詢單個資產')
+  console.log(req.body)
+  const assetId = req.body.assetId
+  Asset.findByPk(assetId, {
+    raw: true,
+    nest: true,
+    include: [
+      Office,
+      Category,
+      Status
+    ]
+  }).then(asset => {
+    console.log(asset)
+
+    res.json({ status: 200, message: 'get single Asset', response: asset })
+  }).catch(err => {
+    console.log(err)
+  })
+
+
+})
 // 整包 gatepass 查詢 API
 app.post('/api/gatepass/package', (req, res) => {
   console.log('收到查詢整包 gatepass 請求')

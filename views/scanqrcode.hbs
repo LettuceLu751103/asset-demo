@@ -1,39 +1,80 @@
 <div class="container">
     <div class="row">
         <div class="col-md-6 col-6">
-            <button class="btn  btn-block {{#ifCond package '1' }}btn-danger{{else}} btn-outline-primary{{/ifCond}}"
-                {{#ifCond package '1' }}disabled{{/ifCond}} id="singleAssetDetail" style="height:150px;">查看資產詳情</button>
+            <button class="btn  btn-block {{#ifCond package 1 }}btn-danger{{else}} btn-outline-primary{{/ifCond}}"
+                {{#ifCond package 1 }}disabled{{/ifCond}} id="singleAssetDetail" style="height:150px;"
+                data-toggle="modal" data-target="#singleAssetDetail-Modal">查看資產詳情</button>
         </div>
         <div class="col-md-6 col-6">
-            <button class="btn {{#ifCond package '0' }}btn-danger{{else}} btn-outline-primary{{/ifCond}} btn-block"
-                {{#ifCond package '0' }}disabled{{/ifCond}} id="multipleAssetDetail" data-id="{{gatepassId}}"
+            <button class="btn {{#ifCond package 0 }}btn-danger{{else}} btn-outline-primary{{/ifCond}} btn-block"
+                {{#ifCond package 0 }}disabled{{/ifCond}} id="multipleAssetDetail" data-id="{{gatepassId}}"
                 style="height:150px;" data-toggle="modal" data-target="#multipleAssetDetail-Modal">查看多個資產內容</button>
         </div>
     </div>
     <div class="row mt-3">
         <div class="col-md-6 col-6">
-            <button class="btn {{#ifCond package '1' }}btn-danger{{else}} btn-outline-primary{{/ifCond}} btn-block"
-                {{#ifCond package '1' }}disabled{{/ifCond}} id="singleAsset" style="height:150px;">單個資產到貨</button>
+            <button class="btn {{#ifCond package 1 }}btn-danger{{else}} btn-outline-primary{{/ifCond}} btn-block"
+                {{#ifCond package 1 }}disabled{{/ifCond}} id="singleAsset" style="height:150px;">單個資產到貨</button>
         </div>
         <div class="col-md-6 col-6">
-            <button class="btn {{#ifCond package '0' }}btn-danger{{else}} btn-outline-primary{{/ifCond}} btn-block"
-                {{#ifCond package '0' }}disabled{{/ifCond}} id="multipleAsset" data-id="{{gatepassId}}" style="
+            <button class="btn {{#ifCond package 0 }}btn-danger{{else}} btn-outline-primary{{/ifCond}} btn-block"
+                {{#ifCond package 0 }}disabled{{/ifCond}} id="multipleAsset" data-id="{{gatepassId}}" style="
                 height:150px;">多個資產到貨</button>
         </div>
     </div>
     <div class="row mt-3">
         <div class="col-md-6 col-6">
-            <button class="btn {{#ifCond package '1' }}btn-danger{{else}} btn-outline-primary{{/ifCond}} btn-block"
-                {{#ifCond package '1' }}disabled{{/ifCond}} id="modifyAsset" style="height:150px;">修改資產使用情況</button>
+            <button class="btn {{#ifCond package 1 }}btn-danger{{else}} btn-outline-primary{{/ifCond}} btn-block"
+                {{#ifCond package 1 }}disabled{{/ifCond}} id="modifyAsset" style="height:150px;">修改資產使用情況</button>
         </div>
         <div class="col-md-6 col-6">
-            <button class="btn {{#ifCond package '1' }}btn-danger{{else}} btn-outline-primary{{/ifCond}} btn-block"
-                {{#ifCond package '1' }}disabled{{/ifCond}} id="checkAsset" style="height:150px;">資產盤點</button>
+            <button class="btn btn-danger btn-block" {{#ifCond package 1 }}disabled{{/ifCond}} id="checkAsset"
+                style="height:150px;" disabled>資產盤點</button>
         </div>
     </div>
 
 
 
+    {{!-- 單個資產查詢 Modal --}}
+    <div class="modal" tabindex="-1" role="dialog" id="singleAssetDetail-Modal">
+        <div class="modal-dialog  modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">當前資產內容</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="singleAssetDetail-Modal-body">
+                    {{!-- 這邊放當前 qrcode 物品清單 --}}
+                    <div class="row">
+                        <div class="col-3"></div>
+                        <div class="col-6">
+                            <img src="" class="img-thumbnail img-fluid rounded mx-auto d-block" id="assetImage">
+                        </div>
+                        <div class="col-3"></div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="font-weight-bold">資產編號: <span id="asset_id"></span></div>
+                        <div class="font-weight-bold">類別: <span id="asset_category"></span></div>
+                        <div class="font-weight-bold">名稱: <span id="asset_name"></span></div>
+                        <div class="font-weight-bold">廠牌: <span id="asset_Vendor"></span></div>
+                        <div class="font-weight-bold">型號: <span id="asset_Model"></span></div>
+                        <div class="font-weight-bold">數量: <span id="asset_Quantity"></span></div>
+                        <div class="font-weight-bold">狀態: <span id="asset_Status"></span></div>
+                        <div class="font-weight-bold">位置: <span id="asset_Office"></span></div>
+                    </div>
+                    <div class="row" id="singleAssetDetail-Modal-table-body">
+                        {{!-- 這邊放單個資產渲染資料 --}}
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
 
     {{!-- 多個資產查詢 Modal --}}
@@ -66,9 +107,11 @@
     const modifyAsset = document.querySelector('#modifyAsset')
     const checkAsset = document.querySelector('#checkAsset')
 
-
+    const assetId = {{{ assetId }}}
     const gatepassStatus = {{{ gatepassStatus }}}
-    if (gatepassStatus === 1) {
+    const package = {{{ package }}}
+
+    if (gatepassStatus === 1 && package === 1) {
         multipleAsset.disabled = true
         multipleAsset.innerHTML = 'gatepass 已到貨'
         multipleAsset.classList.remove('btn-outline-primary')
@@ -76,6 +119,35 @@
     }
     singleAssetDetail.addEventListener('click', () => {
         console.log('請求單個資產詳情')
+        axios.post('/api/qrcode/asset', { assetId })
+            .then(reply => {
+
+                let singleAssetDetail_Modal_table_body = document.querySelector('#singleAssetDetail-Modal-table-body')
+                const assetImage = document.querySelector('#assetImage')
+                const asset_id = document.querySelector('#asset_id')
+                const asset_category = document.querySelector('#asset_category')
+                const asset_name = document.querySelector('#asset_name')
+                const asset_Vendor = document.querySelector('#asset_Vendor')
+                const asset_Model = document.querySelector('#asset_Model')
+                const asset_Quantity = document.querySelector('#asset_Quantity')
+                const asset_Status = document.querySelector('#asset_Status')
+                const asset_Office = document.querySelector('#asset_Office')
+                const data = reply.data.response
+
+                assetImage.src = data.image
+                asset_id.innerHTML = data.id
+                asset_category.innerHTML = data.Category.name
+                asset_name.innerHTML = data.name
+                asset_Vendor.innerHTML = data.Vendor
+                asset_Model.innerHTML = data.Model
+                asset_Quantity.innerHTML = data.Quantity
+                asset_Status.innerHTML = data.Status.name
+                asset_Office.innerHTML = data.Office.name
+
+            })
+            .catch(err => {
+                console.log(err)
+            })
     })
 
     multipleAssetDetail.addEventListener('click', () => {
@@ -90,20 +162,20 @@
                     const multipleAssetDetail_Modal_body = document.querySelector('#multipleAssetDetail-Modal-body')
                     let rawHtml = `
                     <div class='row'>
-                            <div class='col-md-3'>圖片</div>
-                            <div class='col-md-3'>名稱</div>
-                            <div class='col-md-3'>數量</div>
-                            <div class='col-md-3'>當前狀態</div>
+                            <div class='col-xs-6 col-sm-6 col-md-3'>圖片</div>
+                            <div class='col-xs-6 col-sm-6 col-md-3'>名稱</div>
+                            <div class='col-xs-6 col-sm-6 col-md-3'>數量</div>
+                            <div class='col-xs-6 col-sm-6 col-md-3'>當前狀態</div>
                     </div>
                     `
                     reply.data.response.forEach(asset => {
 
                         rawHtml += `
                         <div class='row mt-1'>
-                            <div class='col-md-3'><img src='${asset.image}' style='width:80px;height:80px;'></div>
-                            <div class='col-md-3'>${asset.name}</div>
-                            <div class='col-md-3'>${asset.Quantity}</div>
-                            <div class='col-md-3'>${asset.Status.name}</div>
+                            <div class='col-xs-6 col-sm-6 col-md-3'><img src='${asset.image}' style='width:80px;height:80px;'></div>
+                            <div class='col-xs-6 col-sm-6 col-md-3'>${asset.name}</div>
+                            <div class='col-xs-6 col-sm-6 col-md-3'>${asset.Quantity}</div>
+                            <div class='col-xs-6 col-sm-6 col-md-3'>${asset.Status.name}</div>
                         </div>
                         `
                     })
