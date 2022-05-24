@@ -9,6 +9,14 @@ const bcrypt = require('bcryptjs')
 const app = express()
 const PORT = 3000
 const { Op, NUMBER } = require("sequelize");
+// 引入 https
+const https = require('https')
+// 引入檔案處理
+const fs = require('fs')
+const privatekey = fs.readFileSync('./public/ssl/server_no_passwd.key', 'utf8')
+const certificate = fs.readFileSync('./public/ssl/server.csr', 'utf8')
+// https server options
+const options = { key: privatekey, cert: certificate }
 
 app.set('view engine', 'hbs')
 app.engine('hbs', exphbs({ extname: '.hbs', helpers: handlebarsHelpers }))
@@ -18,8 +26,7 @@ const multer = require('multer')
 const upload = multer({ dest: 'temp/' })
 app.use('/upload', express.static(__dirname + '/upload'))
 app.use(express.static('public'))
-// 引入檔案處理
-const fs = require('fs')
+
 
 
 
@@ -941,9 +948,16 @@ app.put('/editOffices/:id', (req, res) => {
 })
 
 
-// generate QR Code API
+app.post('/scanqrcode/getcamera', (req, res) => {
+  console.log(req.body.content.hostname)
+})
 
 
-app.listen(PORT, () => {
-  console.log(`App is running on http://localhost:${PORT}`)
+// app.listen(PORT, () => {
+//   console.log(`App is running on http://localhost:${PORT}`)
+// })
+
+const server = https.createServer(options, app)
+server.listen(PORT, () => {
+  console.log(`App is running on https://localhost:${PORT}`)
 })

@@ -14,8 +14,8 @@
     <div class="row mt-3">
         <div class="col-md-6 col-6">
             <button class="btn {{#ifCond package 1 }}btn-danger{{else}} btn-outline-primary{{/ifCond}} btn-block"
-                {{#ifCond package 1 }}disabled{{/ifCond}} id="singleAssetReceived" style="height:150px;"
-                data-toggle="modal" data-target="#singleAssetReceived-Modal">單個資產到貨</button>
+                {{#ifCond package 1 }}disabled{{/ifCond}} id="singleAsset" style="height:150px;" data-toggle="modal"
+                data-target="#singleAssetReceived-Modal">單個資產到貨</button>
         </div>
         <div class="col-md-6 col-6">
             <button class="btn {{#ifCond package 0 }}btn-danger{{else}} btn-outline-primary{{/ifCond}} btn-block"
@@ -47,7 +47,10 @@
                 </div>
                 <div class="modal-body" id="modifyAsset-Modal-body">
                     <div class="row">
-                        <div class="col">這邊要放開起鏡頭</div>
+                        <div class="col">
+                            <video id="preview" autoplay playsinline
+                                style="width:300px; height:300px; margin: 0 auto; display:block;"></video>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -148,6 +151,9 @@
 
 </div>
 
+{{!--
+<script type="text/javascript" src="/javascripts/instascan.min.js"></script> --}}
+<script src="https://rawgit.com/schmich/instascan-builds/master/instascan.min.js"></script>
 <script>
     const singleAssetDetail = document.querySelector('#singleAssetDetail')
     const multipleAssetDetail = document.querySelector('#multipleAssetDetail')
@@ -242,6 +248,55 @@
     singleAsset.addEventListener('click', () => {
         console.log('單個資產到貨')
         console.log('彈出 Modal 開啟相機鏡頭掃描 gatepass qrcode, 獲取 gatepassId')
+        var scanner = new Instascan.Scanner({ video: document.getElementById('preview'), scanPeriod: 5, mirror: false });
+        scanner.addListener('scan', function (content) {
+            alert(content);
+            console.log(content)
+            console.log(assetId)
+
+            //window.location.href=content;
+            axios.post('/scanqrcode/getcamera', { content, assetId })
+                .then(response => {
+                    console.log(response)
+                    scanner.stop(cameras[1])
+                    const singleAssetReceived_Modal = document.querySelector('#singleAssetReceived-Modal')
+                    singleAssetReceived_Modal.modal('hide')
+                })
+                .catch(err => {
+                    console.log(err)
+                })
+
+
+        });
+
+
+        Instascan.Camera.getCameras().then(function (cameras) {
+            console.log(cameras)
+            console.log(cameras.length)
+            axios.post('/scanqrcode/getcamera', cameras[1])
+                .then(response => {
+                    console.log(response)
+                })
+                .catch(err => {
+                    console.log(err)
+                })
+            if (cameras.length > 0) {
+                if (cameras[1]) {
+                    scanner.start(cameras[1]); // [0] 前鏡頭 [1] 後鏡頭 
+                } else {
+                    scanner.start(cameras[0]); // [0] 前鏡頭 [1] 後鏡頭 
+                }
+
+            } else {
+                console.error('沒有找到相機');
+                console.error('No cameras found.');
+                alert('No cameras found.');
+            }
+        }).catch(function (e) {
+            console.log('沒有找到鏡頭')
+            console.error(e);
+            alert(e);
+        });
     })
 
     multipleAsset.addEventListener('click', () => {
