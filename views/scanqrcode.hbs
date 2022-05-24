@@ -14,7 +14,8 @@
     <div class="row mt-3">
         <div class="col-md-6 col-6">
             <button class="btn {{#ifCond package 1 }}btn-danger{{else}} btn-outline-primary{{/ifCond}} btn-block"
-                {{#ifCond package 1 }}disabled{{/ifCond}} id="singleAsset" style="height:150px;">單個資產到貨</button>
+                {{#ifCond package 1 }}disabled{{/ifCond}} id="singleAssetReceived" style="height:150px;"
+                data-toggle="modal" data-target="#singleAssetReceived-Modal">單個資產到貨</button>
         </div>
         <div class="col-md-6 col-6">
             <button class="btn {{#ifCond package 0 }}btn-danger{{else}} btn-outline-primary{{/ifCond}} btn-block"
@@ -25,7 +26,8 @@
     <div class="row mt-3">
         <div class="col-md-6 col-6">
             <button class="btn {{#ifCond package 1 }}btn-danger{{else}} btn-outline-primary{{/ifCond}} btn-block"
-                {{#ifCond package 1 }}disabled{{/ifCond}} id="modifyAsset" style="height:150px;">修改資產使用情況</button>
+                {{#ifCond package 1 }}disabled{{/ifCond}} id="modifyAsset" style="height:150px;" data-toggle="modal"
+                data-target="#modifyAsset-Modal">修改資產使用情況</button>
         </div>
         <div class="col-md-6 col-6">
             <button class="btn btn-danger btn-block" {{#ifCond package 1 }}disabled{{/ifCond}} id="checkAsset"
@@ -33,10 +35,55 @@
         </div>
     </div>
 
+    {{!-- 單個資產到貨 Modal --}}
+    <div class="modal" tabindex="-1" role="dialog" id="singleAssetReceived-Modal">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">掃描 gatepass QRCODE</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="modifyAsset-Modal-body">
+                    <div class="row">
+                        <div class="col">這邊要放開起鏡頭</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{!-- 單個資產修改 Modal --}}
+    <div class="modal" tabindex="-1" role="dialog" id="modifyAsset-Modal">
+        <div class="modal-dialog  modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">修改資產內容</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="modifyAsset-Modal-body">
+                    <div class="row mb-3">
+                        <div class="col-3"></div>
+                        <div class="col-6">
+                            <img src="" class="img-thumbnail img-fluid rounded mx-auto d-block" id="modifyAssetImage">
+                        </div>
+                        <div class="col-3"></div>
+                    </div>
+                    <form id="modifyAsset-Modal-body-form" action="/api/qrcode/asset/edit" method="post"
+                        enctype="multipart/form-data">
+                        {{!-- 這邊放要修改 qrcode 物品清單 --}}
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
 
     {{!-- 單個資產查詢 Modal --}}
-    <div class="modal" tabindex="-1" role="dialog" id="singleAssetDetail-Modal">
+    <div class=" modal" tabindex="-1" role="dialog" id="singleAssetDetail-Modal">
         <div class="modal-dialog  modal-xl" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -97,6 +144,8 @@
             </div>
         </div>
     </div>
+
+
 </div>
 
 <script>
@@ -133,7 +182,9 @@
                 const asset_Status = document.querySelector('#asset_Status')
                 const asset_Office = document.querySelector('#asset_Office')
                 const data = reply.data.response
-
+                console.log('===========================')
+                console.log(data)
+                console.log('===========================')
                 assetImage.src = data.image
                 asset_id.innerHTML = data.id
                 asset_category.innerHTML = data.Category.name
@@ -190,6 +241,7 @@
 
     singleAsset.addEventListener('click', () => {
         console.log('單個資產到貨')
+        console.log('彈出 Modal 開啟相機鏡頭掃描 gatepass qrcode, 獲取 gatepassId')
     })
 
     multipleAsset.addEventListener('click', () => {
@@ -220,6 +272,123 @@
 
     modifyAsset.addEventListener('click', () => {
         console.log('修改資產使用情況')
+        const modifyAsset_Modal_body_form = document.querySelector('#modifyAsset-Modal-body-form')
+        const modifyAssetImage = document.querySelector('#modifyAssetImage')
+        Promise.all([axios.post('/api/qrcode/asset', { assetId }), axios.post('/api/qrcode/category'), axios.post('/api/qrcode/office'), axios.post('/api/qrcode/status')])
+            .then(([asset, category, office, status]) => {
+                console.log('===========================')
+                console.log('Asset')
+                console.log(asset)
+                console.log('category')
+                console.log(category)
+                console.log('office')
+                console.log(office)
+                console.log('===========================')
+                modifyAssetImage.src = asset.data.response.image
+                let rawHtml = `
+                <input type="hidden" name="assetId" value="${asset.data.response.id}">
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label for="inputState">類別</label>
+                        <select id="inputState" class="form-control"  name='category_id'>
+                `
+                // 渲染 類別下拉式選單
+                category.data.response.forEach(categories => {
+                    if (categories.id === asset.data.response.Category.id) {
+                        rawHtml += `
+                        <option selected value='${categories.id}'>${categories.name}</option>
+                        `
+                    } else {
+                        rawHtml += `
+                        <option value='${categories.id}'>${categories.name}</option>
+                        `
+                    }
+                })
+                rawHtml += `
+                        </select>
+                    </div>
+                    <div class="form-group col-md-6">
+                      <label for="input_name">資產名稱</label>
+                      <input type="text" class="form-control" id="input_name" value='${asset.data.response.name}' name='name'>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                      <label for="input_Vendor">廠牌</label>
+                      <input type="text" class="form-control" id="input_Vendor" value='${asset.data.response.Vendor}' name='Vendor'>
+                    </div>
+                    <div class="form-group col-md-6">
+                      <label for="input_Model">型號</label>
+                      <input type="text" class="form-control" id="input_Model" value='${asset.data.response.Model}' name='Model'>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label for="inputState">狀態</label>
+                        <select id="inputState" class="form-control"  name='status_id'>`
+
+                // 渲染 狀態下拉式選單
+                status.data.response.forEach(statuses => {
+                    if (statuses.id === asset.data.response.Status.id) {
+                        rawHtml += `
+                        <option selected value='${statuses.id}'>${statuses.name}</option>
+                        `
+                    } else {
+                        rawHtml += `
+                        <option value='${statuses.id}'>${statuses.name}</option>
+                        `
+                    }
+                })
+                rawHtml += `
+                        </select>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label for="inputState">位置</label>
+                        <select id="inputState" class="form-control" name='office_id'>
+                            `
+
+                // 渲染 位置下拉式選單
+                office.data.response.forEach(offices => {
+                    if (offices.id === asset.data.response.Office.id) {
+                        rawHtml += `
+                        <option selected value='${offices.id}'>${offices.name}</option>
+                        `
+                    } else {
+                        rawHtml += `
+                        <option value='${offices.id}'>${offices.name}</option>
+                        `
+                    }
+                })
+                rawHtml += `
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">               
+                    <div class="form-group col-md-12">
+                      <label for="input_Model">描述</label>
+                      <input type="text" class="form-control" id="input_Description" name='Description' value='${asset.data.response.Description}'>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                    <label for="input_image">圖片</label>
+                    <input type="file" class="form-control-file" id="input_image" name='image'>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-danger">確認修改</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+                `
+                modifyAsset_Modal_body_form.innerHTML = rawHtml
+            })
+            .catch(err => {
+                console.log(err)
+            })
+
     })
 
     checkAsset.addEventListener('click', () => {

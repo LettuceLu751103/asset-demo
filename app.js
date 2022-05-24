@@ -431,7 +431,7 @@ app.get('/scanqrcode', (req, res) => {
         // console.log(gp.status)
         console.log(gp)
         res.render('scanqrcode', {
-          gatepassId: req.query.gatepassId, gatepassStatus: gp.status, package: package, assetId: ''
+          gatepassId: req.query.gatepassId, gatepassStatus: gp.status, package: package, assetId: 0
         })
       })
       .catch(err => {
@@ -447,7 +447,6 @@ app.get('/scanqrcode', (req, res) => {
 // 單個 Asset 查詢 API
 app.post('/api/qrcode/asset', (req, res) => {
   console.log('收到 qrcode 查詢單個資產')
-  console.log(req.body)
   const assetId = req.body.assetId
   Asset.findByPk(assetId, {
     raw: true,
@@ -458,15 +457,110 @@ app.post('/api/qrcode/asset', (req, res) => {
       Status
     ]
   }).then(asset => {
-    console.log(asset)
+    // console.log(asset)
 
     res.json({ status: 200, message: 'get single Asset', response: asset })
   }).catch(err => {
     console.log(err)
   })
-
-
 })
+
+// 單個 Asset 修改 API
+app.post('/api/qrcode/asset/edit', upload.single('image'), (req, res) => {
+  console.log('收到 qrcode 修改單個資產')
+  console.log(req.body)
+  const assetId = req.body.assetId
+  console.log(assetId)
+
+  const { file } = req
+  const { name, Vendor, Model, Quantity, Description } = req.body
+  const categoryId = req.body.category_id
+  const officeId = req.body.office_id
+  const statusId = req.body.status_id
+  if (file) {
+    console.log('有收到圖片要另外處理')
+    fs.readFile(file.path, (err, data) => {
+      if (err) console.log('Error: ', err)
+      console.log(file)
+      fs.writeFile(`upload/${file.originalname}`, data, () => {
+        return Asset.findByPk(assetId)
+          .then(asset => {
+            return asset.update({
+              statusId,
+              categoryId,
+              name,
+              Vendor,
+              Model,
+              Quantity,
+              officeId,
+              Description,
+              image: file ? `/upload/${file.originalname}` : null
+            }).then(asset => {
+              res.redirect(`/scanqrcode?package=0&assetId=${assetId}`)
+            })
+          })
+      })
+    })
+  } else {
+    console.log('沒有收到圖片, 用舊有的圖片, 修改資料')
+    Asset.findByPk(assetId)
+      .then(asset => {
+        return asset.update({
+          name,
+          Vendor,
+          Model,
+          Quantity,
+          Description,
+          categoryId: categoryId,
+          status_id: statusId,
+          office_id: officeId
+        })
+      })
+      .then(() => {
+        res.redirect(`/scanqrcode?package=0&assetId=${assetId}`)
+      })
+      .catch(err => {
+        console.log(err)
+      })
+  }
+})
+
+// qrcode Category 查詢 API
+app.post('/api/qrcode/category', (req, res) => {
+  Category.findAll({ raw: true })
+    .then(categories => {
+      // console.log('收到查詢category 請求')
+      res.json({ status: 200, message: 'get category list', response: categories })
+    })
+    .catch(err => {
+      console.log(err)
+    })
+})
+
+// qrcode Office 查詢 API
+app.post('/api/qrcode/office', (req, res) => {
+  Office.findAll({ raw: true })
+    .then(offices => {
+      // console.log('收到查詢category 請求')
+      res.json({ status: 200, message: 'get office list', response: offices })
+    })
+    .catch(err => {
+      console.log(err)
+    })
+})
+
+// qrcode Status 查詢 API
+app.post('/api/qrcode/status', (req, res) => {
+  Status.findAll({ raw: true })
+    .then(statuses => {
+      // console.log('收到查詢category 請求')
+      res.json({ status: 200, message: 'get status list', response: statuses })
+    })
+    .catch(err => {
+      console.log(err)
+    })
+})
+
 // 整包 gatepass 查詢 API
 app.post('/api/gatepass/package', (req, res) => {
   console.log('收到查詢整包 gatepass 請求')
@@ -497,6 +591,7 @@ app.post('/api/gatepass/package', (req, res) => {
       res.json({ status: 200, message: '返回數據', response: b })
     })
 })
+
 
 
 // 整包 gatepass 到貨 API
@@ -560,6 +655,7 @@ app.post('/api/gatepass/package/received', (req, res) => {
       res.json({ status: 200, message: '返回數據', response: b, gatepassStatus: 1 })
     })
 })
+
 
 app.get('/api/officeAssets', (req, res) => {
   // define default data limit
@@ -689,6 +785,9 @@ app.post('/createOfficeAsset', upload.single('image'), (req, res) => {
           Description,
           image: file ? `/upload/${file.originalname}` : null
         }).then((asset) => {
+          console.log('==== 產生 asset qrcode 並存入 DB ====')
+          console.log(asset)
+          console.log('==== 產生 asset qrcode 並存入 DB ====')
           // req.flash('success_messages', 'restaurant was successfully created')
           res.redirect('/officeAssets')
         })
@@ -708,7 +807,32 @@ app.post('/createOfficeAsset', upload.single('image'), (req, res) => {
       Quantity,
       officeId,
       Description
-    }).then(() => {
+    }).then((asset) => {
+      console.log('==== 產生 asset qrcode 並存入 DB ====')
+      const assetId = asset.dataValues.id
+      const qrcodeContent = `http://10.4.100.241:3000/scanqrcode?package=0&assetId=${assetId}`
+      const qrcode = `./images/qrcode/assets/${assetId}.png`
+      // 針對 asset 產生專屬 QR code
+      QRCode.toFile(`./public/images/qrcode/assets/${assetId}.png`, qrcodeContent, {
+        color: {
+          dark: '#00F',  // Blue dots
+          light: '#0000' // Transparent background
+        }
+      }, function (err, success) {
+        if (err) throw err
+        console.log(success)
+      })
+      // 將 asset qrcode path 存入 DB
+      Asset.findByPk(assetId)
+        .then(asset => {
+          return asset.update({
+            qrcode
+          })
+        })
+        .catch(err => {
+          console.log(err)
+        })
+      console.log('==== 產生 asset qrcode 並存入 DB ====')
       res.redirect('/officeAssets')
     })
       .catch(err => {
