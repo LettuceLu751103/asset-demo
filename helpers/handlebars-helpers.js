@@ -8,7 +8,7 @@ module.exports = {
         } else if (statusCode === 1) {
             return '移轉完成'
         } else if (statusCode === 2) {
-            return '資產缺少中'
+            return '到貨部分資產'
         } else {
             return '未知'
         }

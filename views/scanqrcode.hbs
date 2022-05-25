@@ -57,7 +57,7 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <div class="modal-body" id="modifyAsset-Modal-body">
+                <div class="modal-body" id="singleAssetReceived-Modal-body">
                     <div class="row">
                         <div class="col">
                             <video id="preview" autoplay playsinline
@@ -187,6 +187,19 @@
         multipleAsset.innerHTML = 'gatepass 已到貨'
         multipleAsset.classList.remove('btn-outline-primary')
         multipleAsset.classList.add('btn-success')
+    } else if (assetId !== 0 && package === 0) {
+        // 檢查資產是否為移轉中, 若移轉中, 則單個資產按鈕開放, 若不為移轉中, 則單個資產按鈕關閉
+        console.log(assetId)
+        axios.post('/api/qrcode/asset', { assetId })
+            .then(reply => {
+                console.log(reply)
+                if (reply.data.response.status_id !== 3) {
+
+                    singleAsset.disabled = 'true'
+                    singleAsset.classList.remove('btn-outline-primary')
+                    singleAsset.classList.add('btn-success')
+                }
+            })
     }
     singleAssetDetail.addEventListener('click', () => {
         console.log('請求單個資產詳情')
@@ -264,13 +277,9 @@
 
     singleAsset.addEventListener('click', () => {
         console.log('單個資產到貨')
-        console.log('彈出 Modal 開啟相機鏡頭掃描 gatepass qrcode, 獲取 gatepassId')
-
-
 
         var scanner = new Instascan.Scanner({ video: document.getElementById('preview'), scanPeriod: 5, mirror: false });
         scanner.addListener('scan', function (content) {
-            alert(content);
 
             const gpId = content.match(/gatepassId=\d+/)
             if (gpId === null) {
@@ -279,14 +288,65 @@
                 const gId = {}
                 gId.gatepassId = Number(gpId[0].replace(/gatepassId=/, ''))
                 gId.assetId = assetId
-                alert('gatepassId:' + gId.gatepassId + ' assetId: ' + gId.assetId + ' 送到後端修改到貨狀態...')
+                alert('gatepassId:' + gId.gatepassId + ' assetId: ' + gId.assetId + ' 確認到貨狀態...')
                 axios.post('/api/qrcode/asset/received', gId)
                     .then(response => {
-                        console.log(response)
-                        // scanner.stop(cameras[1])
-                        // const singleAssetReceived_Modal = document.querySelector('#singleAssetReceived-Modal')
-                        // singleAssetReceived_Modal.modal('hide')
-                        // 如果回傳資料成功, 彈出 alert 後關閉 Modal, 
+                        if (response.data.status === 999) {
+                            const singleAssetReceived_Modal_body = document.querySelector('#singleAssetReceived-Modal-body')
+
+                            singleAssetReceived_Modal_body.innerHTML = response.data.message
+
+                            setTimeout(function () {
+                                const singleAssetReceived_Modal = document.querySelector('#singleAssetReceived-Modal')
+                                const modal_backdrop = document.querySelector('.modal-backdrop')
+
+                                // 關閉 modal
+                                singleAssetReceived_Modal.style.display = 'none'
+                                modal_backdrop.remove()
+
+                                // 關閉 單個資產到貨按鈕
+                                //singleAsset.disabled = 'true'
+                                //singleAsset.classList.remove('btn-outline-primary')
+                                //singleAsset.classList.add('btn-success')
+
+                                // 關閉相機
+
+                            }, 2000)
+                        } else if (response.data.status === 200 || (response.data.status === 200 && response.data.received === 'true')) {
+
+                            const singleAssetReceived_Modal_body = document.querySelector('#singleAssetReceived-Modal-body')
+
+                            singleAssetReceived_Modal_body.innerHTML = response.data.message
+
+                            setTimeout(function () {
+                                const singleAssetReceived_Modal = document.querySelector('#singleAssetReceived-Modal')
+                                const modal_backdrop = document.querySelector('.modal-backdrop')
+
+                                // 關閉 modal
+                                singleAssetReceived_Modal.style.display = 'none'
+                                modal_backdrop.remove()
+
+                                // 關閉 單個資產到貨按鈕
+                                singleAsset.disabled = 'true'
+                                singleAsset.classList.remove('btn-outline-primary')
+                                singleAsset.classList.add('btn-success')
+
+                                // 關閉相機
+                                Instascan.Camera.getCameras().then(function (cameras) {
+                                    if (cameras.length > 0) {
+                                        if (cameras[1]) {
+                                            scanner.stop(cameras[1]); // [0] 前鏡頭 [1] 後鏡頭 
+                                        } else {
+                                            scanner.stop(cameras[0]); // [0] 前鏡頭 [1] 後鏡頭 
+                                        }
+                                    }
+                                }).catch(function (e) {
+                                    console.log('沒有找到鏡頭')
+                                    console.error(e);
+                                    alert(e);
+                                });
+                            }, 2000)
+                        }
                     })
                     .catch(err => {
                         console.log(err)
@@ -294,7 +354,7 @@
             }
         });
 
-
+        // 點擊單個資產到貨, 找尋相機, 開啟鏡頭, 默認開啟後鏡頭
         Instascan.Camera.getCameras().then(function (cameras) {
             console.log(cameras)
             console.log(cameras.length)

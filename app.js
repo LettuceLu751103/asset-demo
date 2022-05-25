@@ -189,7 +189,7 @@ app.get('/officeAssets', (req, res) => {
     Office.findAll({ raw: true })
   ]).then(([assets, category, office]) => {
     assets.rows.forEach(item => {
-      QRCode.toDataURL(`http://10.4.100.241:3000/scanqrcode?package=0&assetID=${item.id}`, function (err, url) {
+      QRCode.toDataURL(`https://10.4.100.241:3000/scanqrcode?package=0&assetId=${item.id}`, function (err, url) {
         item.qrcode = url
       })
     })
@@ -251,12 +251,13 @@ app.post('/createGatepass', (req, res) => {
           OfficeId: officeId,
           b_office_id,
           a_office_id: 20,
-          quantity: assetId.length
+          quantity: assetId.length,
+          countquantity: assetId.length
         }
       ).then(gp => {
         // 利用 gatepass.id 產生 QRcode, 並寫入 Gatepass table
         console.log(gp.id)
-        const qrcodeContent = `http://10.4.100.241:3000/scanqrcode?package=1&gatepassId=${gp.id}`
+        const qrcodeContent = `https://10.4.100.241:3000/scanqrcode?package=1&gatepassId=${gp.id}`
         const qrcode = `./images/qrcode/gatepasses/${gp.id}.png`
         // 針對 gatepass 產生專屬 QR code
         QRCode.toFile(`./public/images/qrcode/gatepasses/${gp.id}.png`, qrcodeContent, {
@@ -350,7 +351,7 @@ app.get('/gatepass', (req, res) => {
 
 
     gatepass.forEach(item => {
-      QRCode.toDataURL(`http://10.4.100.241:3000/scanqrcode?package=1&gatepassID=${item.id}`, function (err, url) {
+      QRCode.toDataURL(`https://10.4.100.241:3000/scanqrcode?package=1&gatepassId=${item.id}`, function (err, url) {
         item.qrcode = url
       })
     })
@@ -400,8 +401,7 @@ app.get('/api/gatepass', (req, res) => {
 
 
     gatepass.forEach(item => {
-      QRCode.toDataURL(`http://10.4.100.241:3000/scanqrcode?package=1&gatepassID=${item.id}`, function (err, url) {
-
+      QRCode.toDataURL(`http://10.4.100.241:3000/scanqrcode?package=1&gatepassId=${item.id}`, function (err, url) {
         item.qrcode = url
       })
 
@@ -794,6 +794,29 @@ app.post('/createOfficeAsset', upload.single('image'), (req, res) => {
         }).then((asset) => {
           console.log('==== 產生 asset qrcode 並存入 DB ====')
           console.log(asset)
+          const assetId = asset.dataValues.id
+          const qrcodeContent = `https://10.4.100.241:3000/scanqrcode?package=0&assetId=${assetId}`
+          const qrcode = `./images/qrcode/assets/${assetId}.png`
+          // 針對 asset 產生專屬 QR code
+          QRCode.toFile(`./public/images/qrcode/assets/${assetId}.png`, qrcodeContent, {
+            color: {
+              dark: '#00F',  // Blue dots
+              light: '#0000' // Transparent background
+            }
+          }, function (err, success) {
+            if (err) throw err
+            console.log(success)
+          })
+          // 將 asset qrcode path 存入 DB
+          Asset.findByPk(assetId)
+            .then(asset => {
+              return asset.update({
+                qrcode
+              })
+            })
+            .catch(err => {
+              console.log(err)
+            })
           console.log('==== 產生 asset qrcode 並存入 DB ====')
           // req.flash('success_messages', 'restaurant was successfully created')
           res.redirect('/officeAssets')
@@ -817,7 +840,7 @@ app.post('/createOfficeAsset', upload.single('image'), (req, res) => {
     }).then((asset) => {
       console.log('==== 產生 asset qrcode 並存入 DB ====')
       const assetId = asset.dataValues.id
-      const qrcodeContent = `http://10.4.100.241:3000/scanqrcode?package=0&assetId=${assetId}`
+      const qrcodeContent = `https://10.4.100.241:3000/scanqrcode?package=0&assetId=${assetId}`
       const qrcode = `./images/qrcode/assets/${assetId}.png`
       // 針對 asset 產生專屬 QR code
       QRCode.toFile(`./public/images/qrcode/assets/${assetId}.png`, qrcodeContent, {
@@ -954,18 +977,80 @@ app.post('/api/qrcode/asset/received', (req, res) => {
   const AssetId = req.body.assetId
   const GatepassId = req.body.gatepassId
   Promise.all([
-    Transfer.findAll({ raw: true, nest: true, where: { AssetId, GatepassId } }),
-    Asset.findByPk(AssetId, { raw: true, nest: true }),
-    Gatepass.findByPk(GatepassId, { raw: true, nest: true })
+    Transfer.findOne({ where: { AssetId, GatepassId } }),
+    Asset.findByPk(AssetId, {}),
+    Gatepass.findByPk(GatepassId, {})
   ])
     .then(([transfer, asset, gatepass]) => {
-      console.log(transfer)
-      console.log(asset)
-      console.log(gatepass)
+      // console.log(transfer)
+      // console.log(asset)
+      // console.log(gatepass)
+      // 1. 修改 Asset table 該資產 statusId = 3 => statusId = 1, 狀態為 '閒置中'
+      // 2. 修改 Asset table 該資產 office_id => gatepass.OfficeId, 變為移轉後的位置
+      if (transfer === null) {
+        return res.json({ status: 999, message: '請掃描正確的 gatepass ', received: 'false' })
+      } else if (transfer.dataValues.received === 1) {
+        console.log('資產移轉狀態已改為 已接收!!!')
+        return res.json({ status: 200, message: '資產狀態 [ 已經到貨過 ]', received: 'true' })
+      } else {
+        asset.update({
+          statusId: 1,
+          office_id: gatepass.dataValues.OfficeId
+        }).then(at => {
+          // console.log(at.dataValues.name)
+          console.log('資產狀態已改為 閒置中!!!')
+        }).catch(err => {
+          console.log(err)
+        })
+
+        // 3. 修改 Transfer table 該筆移轉紀錄 received = 1, 狀態為 '已接收'
+        transfer.update({
+          received: 1
+        }).then(tf => {
+          console.log(tf.dataValues.received)
+          console.log('資產移轉狀態已改為 已接收!!!')
+
+        }).catch(err => {
+          console.log(err)
+        })
+        // console.log(gatepass.dataValues.countquantity)
+
+        // 4. gatepass table 新增 countQuantity, 紀錄 gatepass 資產到貨數量
+        // 5. 將 gatepass table 內 countQuantity-1, 若 countQuantity=0, 則將 statusId = 1, 狀態為 '移轉完成'
+        if (gatepass.dataValues.countquantity - 1 < 0) {
+          console.log('已移轉完成')
+          return res.json({ status: 200, message: 'gatepass 狀態 [ 移轉完成 ]' })
+        } else if (gatepass.dataValues.countquantity - 1 > 0) {
+          // 5. 若 countQuantity !==0, 則 statusId = 2, 狀態為 '到貨部分資產'
+          gatepass.update({
+            countquantity: gatepass.dataValues.countquantity - 1,
+            status: 2
+          }).then(gp => {
+            // console.log(gp.dataValues.status)
+            console.log('gatepass 狀態已改為 到貨部分資產!!!')
+            return res.json({ status: 200, message: 'gatepass 狀態 [ 到貨部分資產 ]' })
+          }).catch(err => {
+            console.log(err)
+          })
+        } else {
+          gatepass.update({
+            countquantity: 0,
+            status: 1
+          }).then(gp => {
+            // console.log(gp.dataValues.status)
+            console.log('gatepass 狀態已改為 移轉完成!!!')
+            return res.json({ status: 200, message: 'gatepass 狀態 [ 移轉完成 ]' })
+          }).catch(err => {
+            console.log(err)
+          })
+        }
+      }
+
     })
     .catch(err => {
       console.log(err)
     })
+
   // 傳進來兩個參數, assetId, gatepassId
   // 查詢 Asset table, 修改該資產狀態為閒置中
   // 查詢 Transfer table, 修改該資產狀態為已接收

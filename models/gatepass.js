@@ -25,6 +25,11 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       allowNull: false
     },
+    countquantity:
+    {
+      type: DataTypes.INTEGER,
+      allowNull: false
+    },
     qrcode:
     {
       type: DataTypes.STRING,
