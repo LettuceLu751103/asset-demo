@@ -947,9 +947,29 @@ app.put('/editOffices/:id', (req, res) => {
 
 })
 
-
-app.post('/scanqrcode/getcamera', (req, res) => {
-  console.log(req.body.content.hostname)
+// 掃描 qrcode , 單個資產到貨 API
+app.post('/api/qrcode/asset/received', (req, res) => {
+  // console.log(req.body.content.hostname)
+  console.log(req.body)
+  const AssetId = req.body.assetId
+  const GatepassId = req.body.gatepassId
+  Promise.all([
+    Transfer.findAll({ raw: true, nest: true, where: { AssetId, GatepassId } }),
+    Asset.findByPk(AssetId, { raw: true, nest: true }),
+    Gatepass.findByPk(GatepassId, { raw: true, nest: true })
+  ])
+    .then(([transfer, asset, gatepass]) => {
+      console.log(transfer)
+      console.log(asset)
+      console.log(gatepass)
+    })
+    .catch(err => {
+      console.log(err)
+    })
+  // 傳進來兩個參數, assetId, gatepassId
+  // 查詢 Asset table, 修改該資產狀態為閒置中
+  // 查詢 Transfer table, 修改該資產狀態為已接收
+  // 查詢 gatepass table, 確認是否資產接收數量為0, 若為0, 則修改gatepass狀態為已完成移轉
 })
 
 

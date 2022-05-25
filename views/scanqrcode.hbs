@@ -30,8 +30,20 @@
                 data-target="#modifyAsset-Modal">修改資產使用情況</button>
         </div>
         <div class="col-md-6 col-6">
-            <button class="btn btn-danger btn-block" {{#ifCond package 1 }}disabled{{/ifCond}} id="checkAsset"
+            <button class="btn btn-danger btn-block" {{#ifCond package 1 }}disabled{{/ifCond}} id="assetTransfer"
                 style="height:150px;" disabled>資產盤點</button>
+        </div>
+    </div>
+
+    <div class="row mt-3">
+        <div class="col-md-6 col-6">
+            <button class="btn {{#ifCond package 1 }}btn-danger{{else}} btn-outline-primary{{/ifCond}} btn-block"
+                {{#ifCond package 1 }}disabled{{/ifCond}} id="modifyAsset" style="height:150px;" data-toggle="modal"
+                data-target="#xxxx" disabled>單個資產移轉</button>
+        </div>
+        <div class="col-md-6 col-6">
+            <button class="btn btn-danger btn-block" {{#ifCond package 1 }}disabled{{/ifCond}} id="checkAsset"
+                style="height:150px;" disabled>xxxx</button>
         </div>
     </div>
 
@@ -113,6 +125,7 @@
                         <div class="font-weight-bold">數量: <span id="asset_Quantity"></span></div>
                         <div class="font-weight-bold">狀態: <span id="asset_Status"></span></div>
                         <div class="font-weight-bold">位置: <span id="asset_Office"></span></div>
+                        <div class="font-weight-bold">資產描述: <span id="asset_Description"></span></div>
                     </div>
                     <div class="row" id="singleAssetDetail-Modal-table-body">
                         {{!-- 這邊放單個資產渲染資料 --}}
@@ -155,6 +168,9 @@
 <script type="text/javascript" src="/javascripts/instascan.min.js"></script> --}}
 <script src="https://rawgit.com/schmich/instascan-builds/master/instascan.min.js"></script>
 <script>
+
+
+
     const singleAssetDetail = document.querySelector('#singleAssetDetail')
     const multipleAssetDetail = document.querySelector('#multipleAssetDetail')
     const singleAsset = document.querySelector('#singleAsset')
@@ -187,6 +203,7 @@
                 const asset_Quantity = document.querySelector('#asset_Quantity')
                 const asset_Status = document.querySelector('#asset_Status')
                 const asset_Office = document.querySelector('#asset_Office')
+                const asset_Description = document.querySelector('#asset_Description')
                 const data = reply.data.response
                 console.log('===========================')
                 console.log(data)
@@ -200,7 +217,7 @@
                 asset_Quantity.innerHTML = data.Quantity
                 asset_Status.innerHTML = data.Status.name
                 asset_Office.innerHTML = data.Office.name
-
+                asset_Description.innerHTML = data.Description
             })
             .catch(err => {
                 console.log(err)
@@ -248,38 +265,40 @@
     singleAsset.addEventListener('click', () => {
         console.log('單個資產到貨')
         console.log('彈出 Modal 開啟相機鏡頭掃描 gatepass qrcode, 獲取 gatepassId')
+
+
+
         var scanner = new Instascan.Scanner({ video: document.getElementById('preview'), scanPeriod: 5, mirror: false });
         scanner.addListener('scan', function (content) {
             alert(content);
-            console.log(content)
-            console.log(assetId)
 
-            //window.location.href=content;
-            axios.post('/scanqrcode/getcamera', { content, assetId })
-                .then(response => {
-                    console.log(response)
-                    scanner.stop(cameras[1])
-                    const singleAssetReceived_Modal = document.querySelector('#singleAssetReceived-Modal')
-                    singleAssetReceived_Modal.modal('hide')
-                })
-                .catch(err => {
-                    console.log(err)
-                })
-
-
+            const gpId = content.match(/gatepassId=\d+/)
+            if (gpId === null) {
+                alert('請掃描 gatepass qrcode!!!')
+            } else {
+                const gId = {}
+                gId.gatepassId = Number(gpId[0].replace(/gatepassId=/, ''))
+                gId.assetId = assetId
+                alert('gatepassId:' + gId.gatepassId + ' assetId: ' + gId.assetId + ' 送到後端修改到貨狀態...')
+                axios.post('/api/qrcode/asset/received', gId)
+                    .then(response => {
+                        console.log(response)
+                        // scanner.stop(cameras[1])
+                        // const singleAssetReceived_Modal = document.querySelector('#singleAssetReceived-Modal')
+                        // singleAssetReceived_Modal.modal('hide')
+                        // 如果回傳資料成功, 彈出 alert 後關閉 Modal, 
+                    })
+                    .catch(err => {
+                        console.log(err)
+                    })
+            }
         });
 
 
         Instascan.Camera.getCameras().then(function (cameras) {
             console.log(cameras)
             console.log(cameras.length)
-            axios.post('/scanqrcode/getcamera', cameras[1])
-                .then(response => {
-                    console.log(response)
-                })
-                .catch(err => {
-                    console.log(err)
-                })
+
             if (cameras.length > 0) {
                 if (cameras[1]) {
                     scanner.start(cameras[1]); // [0] 前鏡頭 [1] 後鏡頭 
