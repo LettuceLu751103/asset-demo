@@ -5,7 +5,7 @@
         <a class="nav-link" href="/offices">辦公室類別</a>
         <a class="nav-link" href="/officeAssets">辦公室資產</a>
         <a class="nav-link active" href="#">GatePass</a>
-        <a class="nav-link" href="/scanqrcode">QR code入口</a>
+        <a class="nav-link" href="/#">QR code入口</a>
     </nav>
 
     <div class="row mt-2">
@@ -61,6 +61,7 @@
                         <th scope="col">qrcode</th>
                         <th scope="col">起單時間</th>
                         <th scope="col">修改時間</th>
+                        <th scope="col">詳情</th>
                         {{!-- <th scope="col">Description</th> --}}
                     </tr>
                 </thead>
@@ -154,12 +155,35 @@
                         </td>`
 
                 rawHtml += `
-                <td id="gatepass_username">`+ moment(gp.createdAt).format('lll') + `</td>
+                <td id="gatepass_createdAt">`+ moment(gp.createdAt).format('lll') + `</td>
                 `
                 rawHtml += `
-                <td id="gatepass_username">`+ moment(gp.updatedAt).format('lll') + `</td>
+                <td id="gatepass_updatedAt">`+ moment(gp.updatedAt).format('lll') + `</td>
                 `
 
+                rawHtml += `
+                <td id="gatepass_detail" data-id='${gp.id}'><button class='btn btn-outline-info' data-toggle="modal" data-target="#modal_${gp.id}">查看</button></td>
+                <!-- Modal -->
+                <div class="modal fade" id="modal_${gp.id}" tabindex="-1">
+                  <div class="modal-dialog">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                          <span aria-hidden="true">&times;</span>
+                        </button>
+                      </div>
+                      <div class="modal-body">
+                        ...
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary">Save changes</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                `
 
 
             })

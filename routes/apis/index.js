@@ -81,7 +81,7 @@ router.get('/officeAssets', (req, res) => {
     ]).then(([assets, category, office]) => {
         console.log(assets)
         assets.rows.forEach(item => {
-            QRCode.toDataURL(`http://10.4.100.241:3000/editAssets/${item.id}`, function (err, url) {
+            QRCode.toDataURL(`https://10.4.100.241:3000/editAssets/${item.id}`, function (err, url) {
                 item.qrcode = url
             })
         })

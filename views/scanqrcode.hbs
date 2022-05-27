@@ -30,7 +30,7 @@
                 data-target="#modifyAsset-Modal">修改資產使用情況</button>
         </div>
         <div class="col-md-6 col-6">
-            <button class="btn btn-danger btn-block" {{#ifCond package 1 }}disabled{{/ifCond}} id="assetTransfer"
+            <button class="btn btn-danger btn-block" {{#ifCond package 1 }}disabled{{/ifCond}} id="checkAsset"
                 style="height:150px;" disabled>資產盤點</button>
         </div>
     </div>
@@ -38,36 +38,16 @@
     <div class="row mt-3">
         <div class="col-md-6 col-6">
             <button class="btn {{#ifCond package 1 }}btn-danger{{else}} btn-outline-primary{{/ifCond}} btn-block"
-                {{#ifCond package 1 }}disabled{{/ifCond}} id="modifyAsset" style="height:150px;" data-toggle="modal"
-                data-target="#xxxx" disabled>單個資產移轉</button>
+                id="singleAssetGatepass" style="height:150px;" data-toggle="modal"
+                data-target="#singleAssetGatepass_Modal" disabled>單個資產移轉</button>
         </div>
         <div class="col-md-6 col-6">
-            <button class="btn btn-danger btn-block" {{#ifCond package 1 }}disabled{{/ifCond}} id="checkAsset"
-                style="height:150px;" disabled>xxxx</button>
+            <button class="btn btn-outline-primary btn-block" id="scanqrcode_btn" style="height:150px;"
+                data-toggle="modal" data-target="#scanqrcode_Modal">QR Code
+                掃描到貨</button>
         </div>
     </div>
 
-    {{!-- 單個資產到貨 Modal --}}
-    <div class="modal" tabindex="-1" role="dialog" id="singleAssetReceived-Modal">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">掃描 gatepass QRCODE</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body" id="singleAssetReceived-Modal-body">
-                    <div class="row">
-                        <div class="col">
-                            <video id="preview" autoplay playsinline
-                                style="width:300px; height:300px; margin: 0 auto; display:block;"></video>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
     {{!-- 單個資產修改 Modal --}}
     <div class="modal" tabindex="-1" role="dialog" id="modifyAsset-Modal">
@@ -139,6 +119,144 @@
         </div>
     </div>
 
+    {{!-- 單個資產移轉 Modal --}}
+    <div class="modal fade" id="singleAssetGatepass_Modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">資產設備移轉</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="singleAssetGatepass_Modal_Body">
+                    <div class='row'>
+                        <div class='col-6' id='createGP_btn'>
+                            <button class="btn btn-outline-primary btn-block" data-toggle="modal"
+                                data-target="#singleAssetGatepass_Modal2">新建 Gatepass</button>
+                        </div>
+
+
+                        <div class='col-6' id='addGP_btn'>
+                            <button class="btn btn-outline-primary btn-block" data-toggle="modal"
+                                data-target="#scanqrcode_to_gatepass_Modal">加入 Gatepass</button>
+                        </div>
+                    </div>
+                </div>
+                <!--
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cencel</button>
+                    <button type="button" class="btn btn-primary">Save changes</button>
+                </div>
+                -->
+            </div>
+        </div>
+    </div>
+
+    {{!-- QR Code 掃描入 gatepass Modal --}}
+    <!-- Modal -->
+    <div class="modal fade" id="scanqrcode_to_gatepass_Modal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">QR code 掃描加入 gatepass
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row justify-content-center">
+                        <div class="col">
+                            <div>選擇 gatepass: <span id="scanqrcode_to_gatepass_message" class="text-danger"></span>
+                            </div>
+                            <select class="custom-select mt-3">
+                                <option selected>Open this select menu</option>
+                                <option value="1">One</option>
+                                <option value="2">Two</option>
+                                <option value="3">Three</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row mt-2">
+                        <div class="col border">
+
+                            <video id="scanqrcode_to_gatepass_video" autoplay playsinline></video>
+
+
+                        </div>
+                    </div>
+                    <div class="mt-2">待加入資產</div>
+                    <div class="row ">
+
+                        <div class="col-2">
+                            #
+                        </div>
+                        <div class="col-3">
+                            名稱
+                        </div>
+                        <div class="col-3">
+                            編號
+                        </div>
+                        <div class="col-3">
+                            圖片
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary">加入 gatepass</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    {{!-- 創建 Gatepass Modal --}}
+    <div class="modal fade" id="singleAssetGatepass_Modal2" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">新建 Gatepass </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="singleAssetGatepass_Modal_Body">
+
+                    <div class='row'>
+                        <div><label for="fromOffice">選擇起始位置</label></div>
+                    </div>
+                    <div class='row'>
+                        <select class="custom-select" id='fromOffice'>
+
+                        </select>
+                    </div>
+                    <div class='row mt-5'>
+                        <div><label for="fromOffice">選擇目的位置</label></div>
+                    </div>
+                    <div class='row'>
+                        <select class="custom-select" id='toOffice'>
+
+                        </select>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                        id="returnSingleAssetGatepass">Return</button>
+                    <button type="button" class="btn btn-primary" id="confirmGP_btn">成立 Gatepass</button>
+                </div>
+                <!--
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cencel</button>
+                    <button type="button" class="btn btn-primary">Save changes</button>
+                </div>
+                -->
+            </div>
+        </div>
+    </div>
 
     {{!-- 多個資產查詢 Modal --}}
     <div class="modal" tabindex="-1" role="dialog" id="multipleAssetDetail-Modal">
@@ -162,22 +280,66 @@
     </div>
 
 
+    {{!-- QR Code 掃描到貨 Modal --}}
+    <!-- Modal -->
+    <div class="modal fade" id="scanqrcode_Modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">QR code 掃描到貨
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row justify-content-center">
+                        <div class="col">
+                            <div>到貨狀態: <span id="assetArrivedMessage" class="text-danger"></span></div>
+                            <div class=" form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="openCameraSwitch"
+                                    checked>
+                                <label class="form-check-label" for="openCameraSwitch"
+                                    id="openCameraSwitchLabel">關閉相機</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div></div>
+                    <div class="border">
+                        <video width="200" height="200" id="preview" autoplay playsinline
+                            style="margin: 0 auto; display:block;" class="border"></video>
+                    </div>
+
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 {{!--
 <script type="text/javascript" src="/javascripts/instascan.min.js"></script> --}}
 <script src="https://rawgit.com/schmich/instascan-builds/master/instascan.min.js"></script>
 <script>
-
-
-
     const singleAssetDetail = document.querySelector('#singleAssetDetail')
     const multipleAssetDetail = document.querySelector('#multipleAssetDetail')
     const singleAsset = document.querySelector('#singleAsset')
     const multipleAsset = document.querySelector('#multipleAsset')
     const modifyAsset = document.querySelector('#modifyAsset')
     const checkAsset = document.querySelector('#checkAsset')
-
+    const scanqrcode_btn = document.querySelector('#scanqrcode_btn')
+    const openCameraSwitch = document.querySelector('#openCameraSwitch')
+    const assetArrivedMessage = document.querySelector('#assetArrivedMessage')
+    const singleAssetGatepass = document.querySelector('#singleAssetGatepass')
+    const confirmGP_btn = document.querySelector('#confirmGP_btn')
+    const singleAssetGatepass_Modal2 = document.querySelector('#singleAssetGatepass_Modal2')
+    // QRCODE
+    var scanner = new Instascan.Scanner({ video: document.getElementById('preview'), scanPeriod: 5, mirror: false });
     const assetId = {{{ assetId }}}
     const gatepassStatus = {{{ gatepassStatus }}}
     const package = {{{ package }}}
@@ -187,20 +349,105 @@
         multipleAsset.innerHTML = 'gatepass 已到貨'
         multipleAsset.classList.remove('btn-outline-primary')
         multipleAsset.classList.add('btn-success')
+
+        scanqrcode_btn.disabled = 'true'
+        scanqrcode_btn.classList.remove('btn-outline-primary')
+        scanqrcode_btn.classList.add('btn-success')
     } else if (assetId !== 0 && package === 0) {
-        // 檢查資產是否為移轉中, 若移轉中, 則單個資產按鈕開放, 若不為移轉中, 則單個資產按鈕關閉
+
+
+        scanqrcode_btn.disabled = 'true'
+        scanqrcode_btn.classList.remove('btn-outline-primary')
+        scanqrcode_btn.classList.add('btn-danger')
+        // 若資產不為移轉中, 則單個資產到貨按鈕 => 關閉, 單個資產移轉 => 開放
         console.log(assetId)
         axios.post('/api/qrcode/asset', { assetId })
             .then(reply => {
                 console.log(reply)
-                if (reply.data.response.status_id !== 3) {
 
+                if (reply.data.response.status_id !== 3) {
                     singleAsset.disabled = 'true'
                     singleAsset.classList.remove('btn-outline-primary')
                     singleAsset.classList.add('btn-success')
+                    singleAssetGatepass.disabled = ''
+                } else {
+                    // 檢查資產是否為移轉中, 若移轉中, 則單個資產到貨按鈕 => 開放, 單個資產移轉 => 關閉
+                    singleAssetGatepass.disabled = 'true'
+                    singleAssetGatepass.classList.remove('btn-outline-primary')
+                    singleAssetGatepass.classList.add('btn-danger')
+
                 }
             })
     }
+
+
+    // 加入 gatepass 按鈕事件
+    addGP_btn.addEventListener('click', () => {
+        alert('這邊渲染 gatepass 下拉選單, 並添加鏡頭功能')
+        console.log('axios 到後端請求 gp 所有資料, 在渲染到另外一個 Modal')
+
+    })
+    // 成立 Gatepass 按鈕事件
+    confirmGP_btn.addEventListener('click', () => {
+        let fromOffice = document.querySelector('#fromOffice')
+        let toOffice = document.querySelector('#toOffice')
+        console.log('成立 Gatepass')
+        console.log(fromOffice.value)
+        console.log(toOffice.value)
+        fromOfficeId = fromOffice.value
+        toOfficeId = toOffice.value
+        if (fromOffice.value === toOffice.value) {
+            alert('成立 Gatepass 失敗, 來源和目的地不可相同')
+        } else {
+            alert(`From : ${fromOffice.value}, To: ${toOffice.value}`)
+            axios.post('/api/gatepass/empty', { fromOfficeId: fromOfficeId, toOfficeId: toOfficeId })
+                .then(response => {
+                    console.log(response)
+
+                    if (response.status === 200) {
+                        alert(response.data.message)
+                        const returnSingleAssetGatepass = document.querySelector('#returnSingleAssetGatepass')
+                        returnSingleAssetGatepass.click()
+                    }
+                })
+                .catch(err => {
+                    console.log(err)
+                })
+        }
+    })
+    // 單個資產移轉 按鈕事件
+    singleAssetGatepass.addEventListener('click', () => {
+        console.log('點擊單個資產移轉按鈕')
+        let singleAssetGatepass_Modal_Body = document.querySelector('#singleAssetGatepass_Modal_Body')
+        const createGP_btn = document.querySelector('#createGP_btn')
+        const addGP_btn = document.querySelector('#addGP_btn')
+
+
+        // 兩種情況
+        // 1. 新建 Gatepass
+        createGP_btn.addEventListener('click', () => {
+            // singleAssetGatepass_Modal_Body.innerHTML =
+
+
+            axios.post('/api/qrcode/office')
+                .then(response => {
+                    console.log(response)
+                    if (response.status === 200) {
+                        // 渲染 fromOffice & toOffice selection
+                        let fromOffice = document.querySelector('#fromOffice')
+                        let toOffice = document.querySelector('#toOffice')
+                        let rawHtml = ''
+                        response.data.response.forEach(data => {
+                            rawHtml += `<option value="${data.id}">${data.name}</option>`
+                        })
+                        fromOffice.innerHTML += rawHtml
+                        toOffice.innerHTML += rawHtml
+                    }
+                })
+        })
+        // 2. 選擇現有 Gatepass 加入
+        // 請求現有 Gatepass 選單
+    })
     singleAssetDetail.addEventListener('click', () => {
         console.log('請求單個資產詳情')
         axios.post('/api/qrcode/asset', { assetId })
@@ -249,20 +496,20 @@
                     const multipleAssetDetail_Modal_body = document.querySelector('#multipleAssetDetail-Modal-body')
                     let rawHtml = `
                     <div class='row'>
-                            <div class='col-xs-6 col-sm-6 col-md-3'>圖片</div>
-                            <div class='col-xs-6 col-sm-6 col-md-3'>名稱</div>
-                            <div class='col-xs-6 col-sm-6 col-md-3'>數量</div>
-                            <div class='col-xs-6 col-sm-6 col-md-3'>當前狀態</div>
+                            <div class='col-xs-6 col-sm-6 col-md-3 col-3'>圖片</div>
+                            <div class='col-xs-6 col-sm-6 col-md-3 col-3'>名稱</div>
+                            <div class='col-xs-6 col-sm-6 col-md-3 col-3'>數量</div>
+                            <div class='col-xs-6 col-sm-6 col-md-3 col-3'>當前狀態</div>
                     </div>
                     `
                     reply.data.response.forEach(asset => {
 
                         rawHtml += `
                         <div class='row mt-1'>
-                            <div class='col-xs-6 col-sm-6 col-md-3'><img src='${asset.image}' style='width:80px;height:80px;'></div>
-                            <div class='col-xs-6 col-sm-6 col-md-3'>${asset.name}</div>
-                            <div class='col-xs-6 col-sm-6 col-md-3'>${asset.Quantity}</div>
-                            <div class='col-xs-6 col-sm-6 col-md-3'>${asset.Status.name}</div>
+                            <div class='col-xs-6 col-sm-6 col-md-3 col-3'><img src='${asset.image}' style='width:80px;height:80px;'></div>
+                            <div class='col-xs-6 col-sm-6 col-md-3 col-3'>${asset.name}</div>
+                            <div class='col-xs-6 col-sm-6 col-md-3 col-3'>${asset.Quantity}</div>
+                            <div class='col-xs-6 col-sm-6 col-md-3 col-3'>${asset.Status.name}</div>
                         </div>
                         `
                     })
@@ -275,107 +522,28 @@
             })
     })
 
+    // 單個資產到貨按鈕 按鈕事件
     singleAsset.addEventListener('click', () => {
         console.log('單個資產到貨')
+        axios.post('/api/qrcode/asset/received', { assetId })
+            .then(response => {
 
-        var scanner = new Instascan.Scanner({ video: document.getElementById('preview'), scanPeriod: 5, mirror: false });
-        scanner.addListener('scan', function (content) {
+                if (response.status === 200) {
+                    alert(response.data.message)
+                    // 關閉 單個資產到貨按鈕
+                    singleAsset.disabled = 'true'
+                    singleAsset.classList.remove('btn-outline-primary')
+                    singleAsset.classList.add('btn-success')
 
-            const gpId = content.match(/gatepassId=\d+/)
-            if (gpId === null) {
-                alert('請掃描 gatepass qrcode!!!')
-            } else {
-                const gId = {}
-                gId.gatepassId = Number(gpId[0].replace(/gatepassId=/, ''))
-                gId.assetId = assetId
-                alert('gatepassId:' + gId.gatepassId + ' assetId: ' + gId.assetId + ' 確認到貨狀態...')
-                axios.post('/api/qrcode/asset/received', gId)
-                    .then(response => {
-                        if (response.data.status === 999) {
-                            const singleAssetReceived_Modal_body = document.querySelector('#singleAssetReceived-Modal-body')
-
-                            singleAssetReceived_Modal_body.innerHTML = response.data.message
-
-                            setTimeout(function () {
-                                const singleAssetReceived_Modal = document.querySelector('#singleAssetReceived-Modal')
-                                const modal_backdrop = document.querySelector('.modal-backdrop')
-
-                                // 關閉 modal
-                                singleAssetReceived_Modal.style.display = 'none'
-                                modal_backdrop.remove()
-
-                                // 關閉 單個資產到貨按鈕
-                                //singleAsset.disabled = 'true'
-                                //singleAsset.classList.remove('btn-outline-primary')
-                                //singleAsset.classList.add('btn-success')
-
-                                // 關閉相機
-
-                            }, 2000)
-                        } else if (response.data.status === 200 || (response.data.status === 200 && response.data.received === 'true')) {
-
-                            const singleAssetReceived_Modal_body = document.querySelector('#singleAssetReceived-Modal-body')
-
-                            singleAssetReceived_Modal_body.innerHTML = response.data.message
-
-                            setTimeout(function () {
-                                const singleAssetReceived_Modal = document.querySelector('#singleAssetReceived-Modal')
-                                const modal_backdrop = document.querySelector('.modal-backdrop')
-
-                                // 關閉 modal
-                                singleAssetReceived_Modal.style.display = 'none'
-                                modal_backdrop.remove()
-
-                                // 關閉 單個資產到貨按鈕
-                                singleAsset.disabled = 'true'
-                                singleAsset.classList.remove('btn-outline-primary')
-                                singleAsset.classList.add('btn-success')
-
-                                // 關閉相機
-                                Instascan.Camera.getCameras().then(function (cameras) {
-                                    if (cameras.length > 0) {
-                                        if (cameras[1]) {
-                                            scanner.stop(cameras[1]); // [0] 前鏡頭 [1] 後鏡頭 
-                                        } else {
-                                            scanner.stop(cameras[0]); // [0] 前鏡頭 [1] 後鏡頭 
-                                        }
-                                    }
-                                }).catch(function (e) {
-                                    console.log('沒有找到鏡頭')
-                                    console.error(e);
-                                    alert(e);
-                                });
-                            }, 2000)
-                        }
-                    })
-                    .catch(err => {
-                        console.log(err)
-                    })
-            }
-        });
-
-        // 點擊單個資產到貨, 找尋相機, 開啟鏡頭, 默認開啟後鏡頭
-        Instascan.Camera.getCameras().then(function (cameras) {
-            console.log(cameras)
-            console.log(cameras.length)
-
-            if (cameras.length > 0) {
-                if (cameras[1]) {
-                    scanner.start(cameras[1]); // [0] 前鏡頭 [1] 後鏡頭 
-                } else {
-                    scanner.start(cameras[0]); // [0] 前鏡頭 [1] 後鏡頭 
+                    // 開啟 單個資產移轉按鈕
+                    singleAssetGatepass.disabled = ''
+                    singleAssetGatepass.classList.remove('btn-danger')
+                    singleAssetGatepass.classList.add('btn-outline-primary')
                 }
-
-            } else {
-                console.error('沒有找到相機');
-                console.error('No cameras found.');
-                alert('No cameras found.');
-            }
-        }).catch(function (e) {
-            console.log('沒有找到鏡頭')
-            console.error(e);
-            alert(e);
-        });
+            })
+            .catch(err => {
+                console.log(err)
+            })
     })
 
     multipleAsset.addEventListener('click', () => {
@@ -528,4 +696,101 @@
     checkAsset.addEventListener('click', () => {
         console.log('資產盤點')
     })
+
+    // QR Code 掃描到貨 按鈕事件
+    scanqrcode_btn.addEventListener('click', () => {
+        console.log('QR Code 掃描到貨')
+        // 默認開啟相機
+        openCamera()
+        scanner.addListener('scan', function (content) {
+            console.log(content)
+            // 分辨 QR code 類型
+            let gatepassId = content.match(/gatepassId=\d+/)
+            let assetId = content.match(/assetId=\d+/)
+
+            if (gatepassId) {
+                alert(gatepassId)
+                console.log('辨別為 gatepass qrcode')
+                gatepassId = gatepassId[0].replace(/gatepassId=/, '')
+                axios.post('/api/qrcode/asset/received', { gatepassId })
+                    .then(response => {
+                        console.log(response)
+                    })
+                    .catch(err => {
+                        console.log(err)
+                    })
+            } else if (assetId) {
+                alert(`QR code : ${assetId}`)
+                assetId = assetId[0].replace(/assetId=/, '')
+                console.log('辨別為 asset qrcode : ' + assetId)
+                axios.post('/api/qrcode/asset/received', { assetId })
+                    .then(response => {
+                        // 判斷已到貨, 不進行修改
+                        if (response.status === 200) {
+                            assetArrivedMessage.innerHTML = response.data.message
+                        }
+                    })
+            } else {
+                alert('請輸入公司格式的 qrcode')
+            }
+        })
+    })
+
+    openCameraSwitch.addEventListener('click', () => {
+        const openCameraSwitchLabel = document.querySelector('#openCameraSwitchLabel')
+        if (openCameraSwitch.checked === false) {
+            closeCamera()
+            openCameraSwitchLabel.innerHTML = '開啟相機'
+        } else {
+            openCamera()
+            openCameraSwitchLabel.innerHTML = '關閉相機'
+        }
+    })
+
+
+
+    // 開啟鏡頭 
+    function openCamera() {
+        console.log('呼叫 openCamera()')
+        Instascan.Camera.getCameras().then(function (cameras) {
+
+            console.log(cameras)
+            console.log(cameras.length)
+
+            if (cameras.length > 0) {
+                if (cameras[1]) {
+                    scanner.start(cameras[1]); // [0] 前鏡頭 [1] 後鏡頭 
+                } else {
+                    scanner.start(cameras[0]); // [0] 前鏡頭 [1] 後鏡頭 
+                }
+
+            } else {
+                console.error('沒有找到相機');
+                console.error('No cameras found.');
+                alert('No cameras found.');
+            }
+        }).catch(function (e) {
+            console.log('沒有找到鏡頭')
+            console.error(e);
+            alert(e);
+        });
+    }
+
+    // 關閉鏡頭
+    function closeCamera() {
+        console.log('呼叫 closeCamera()')
+        Instascan.Camera.getCameras().then(function (cameras) {
+            if (cameras.length > 0) {
+                if (cameras[1]) {
+                    scanner.stop(cameras[1]); // [0] 前鏡頭 [1] 後鏡頭 
+                } else {
+                    scanner.stop(cameras[0]); // [0] 前鏡頭 [1] 後鏡頭 
+                }
+            }
+        }).catch(function (e) {
+            console.log('沒有找到鏡頭')
+            console.error(e);
+            alert(e);
+        });
+    }
 </script>

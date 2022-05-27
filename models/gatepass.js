@@ -23,12 +23,14 @@ module.exports = (sequelize, DataTypes) => {
     quantity:
     {
       type: DataTypes.INTEGER,
-      allowNull: false
+      allowNull: false,
+      defaultValue: 0,
     },
     countquantity:
     {
       type: DataTypes.INTEGER,
-      allowNull: false
+      allowNull: false,
+      defaultValue: 0,
     },
     qrcode:
     {
