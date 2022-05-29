@@ -18,9 +18,9 @@
                 data-target="#singleAssetReceived-Modal">單個資產到貨</button>
         </div>
         <div class="col-md-6 col-6">
-            <button class="btn {{#ifCond package 0 }}btn-danger{{else}} btn-outline-primary{{/ifCond}} btn-block"
-                {{#ifCond package 0 }}disabled{{/ifCond}} id="multipleAsset" data-id="{{gatepassId}}" style="
-                height:150px;">多個資產到貨</button>
+            <button class="btn btn-outline-primary btn-block" id="scanqrcode_btn" style="height:150px;"
+                data-toggle="modal" data-target="#scanqrcode_Modal">QR Code
+                掃描到貨</button>
         </div>
     </div>
     <div class="row mt-3">
@@ -41,11 +41,13 @@
                 id="singleAssetGatepass" style="height:150px;" data-toggle="modal"
                 data-target="#singleAssetGatepass_Modal" disabled>單個資產移轉</button>
         </div>
+        {{!--
         <div class="col-md-6 col-6">
             <button class="btn btn-outline-primary btn-block" id="scanqrcode_btn" style="height:150px;"
                 data-toggle="modal" data-target="#scanqrcode_Modal">QR Code
                 掃描到貨</button>
         </div>
+        --}}
     </div>
 
 
@@ -139,7 +141,7 @@
 
                         <div class='col-6' id='addGP_btn'>
                             <button class="btn btn-outline-primary btn-block" data-toggle="modal"
-                                data-target="#scanqrcode_to_gatepass_Modal">加入 Gatepass</button>
+                                data-target="#scanqrcode_to_gatepass_Modal">資產入 Gatepass</button>
                         </div>
                     </div>
                 </div>
@@ -170,19 +172,26 @@
                         <div class="col">
                             <div>選擇 gatepass: <span id="scanqrcode_to_gatepass_message" class="text-danger"></span>
                             </div>
-                            <select class="custom-select mt-3">
-                                <option selected>Open this select menu</option>
-                                <option value="1">One</option>
-                                <option value="2">Two</option>
-                                <option value="3">Three</option>
+                            <select class="custom-select mt-3" id="gatepass_data">
+                                {{!-- 這邊填入待移轉中的 gatepass --}}
                             </select>
                         </div>
                     </div>
-
+                    {{!--
                     <div class="row mt-2">
+                        <div class=" form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch" id="opCameraSwitch" checked>
+                            <label class="form-check-label" for="opCameraSwitch" id="opCameraSwitchLabel">關閉相機</label>
+                        </div>
+                    </div>
+
+                    --}}
+                    <div class="row mt-2">
+
                         <div class="col border">
 
-                            <video id="scanqrcode_to_gatepass_video" autoplay playsinline></video>
+                            <video id="scanqrcode_to_gatepass_video" height="200" style="margin: 0 auto; display:block;"
+                                class="border" autoplay playsinline></video>
 
 
                         </div>
@@ -203,10 +212,15 @@
                             圖片
                         </div>
                     </div>
+                    <div id="prepareToGatepassArea">
+
+                    </div>
+
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary">加入 gatepass</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                        id="closeConfirmAssetsToGP">Close</button>
+                    <button type="button" class="btn btn-primary" id="confirmAssetsToGP">加入 gatepass</button>
                 </div>
             </div>
         </div>
@@ -296,16 +310,18 @@
                     <div class="row justify-content-center">
                         <div class="col">
                             <div>到貨狀態: <span id="assetArrivedMessage" class="text-danger"></span></div>
+                            {{!--
                             <div class=" form-check form-switch">
                                 <input class="form-check-input" type="checkbox" role="switch" id="openCameraSwitch"
                                     checked>
                                 <label class="form-check-label" for="openCameraSwitch"
                                     id="openCameraSwitchLabel">關閉相機</label>
                             </div>
+                            --}}
                         </div>
                     </div>
                     <div></div>
-                    <div class="border">
+                    <div class="border mt-3">
                         <video width="200" height="200" id="preview" autoplay playsinline
                             style="margin: 0 auto; display:block;" class="border"></video>
                     </div>
@@ -334,12 +350,20 @@
     const checkAsset = document.querySelector('#checkAsset')
     const scanqrcode_btn = document.querySelector('#scanqrcode_btn')
     const openCameraSwitch = document.querySelector('#openCameraSwitch')
+    const opCameraSwitch = document.querySelector('#opCameraSwitch')
     const assetArrivedMessage = document.querySelector('#assetArrivedMessage')
     const singleAssetGatepass = document.querySelector('#singleAssetGatepass')
     const confirmGP_btn = document.querySelector('#confirmGP_btn')
     const singleAssetGatepass_Modal2 = document.querySelector('#singleAssetGatepass_Modal2')
     // QRCODE
     var scanner = new Instascan.Scanner({ video: document.getElementById('preview'), scanPeriod: 5, mirror: false });
+    const addAssetScanner = new Instascan.Scanner({ video: document.getElementById('scanqrcode_to_gatepass_video'), scanPeriod: 5, mirror: false });
+
+    // 待加入資產列表
+    let localstorageArray = []
+
+    let prepareToGatepassArea = document.querySelector('#prepareToGatepassArea')
+    const STORAGE_KEY = 'assetToGatepass'
     const assetId = {{{ assetId }}}
     const gatepassStatus = {{{ gatepassStatus }}}
     const package = {{{ package }}}
@@ -380,11 +404,172 @@
             })
     }
 
-
+    confirmAssetsToGP.addEventListener('click', () => {
+        console.log('確認資產是否加入 gatepass')
+        alert('確認資產是否加入 gatepass')
+        const assetList = JSON.parse(localStorage.getItem('assetToGatepass')) || []
+        console.log(assetList)
+        const gatepass_data = document.querySelector('#gatepass_data')
+        console.log(gatepass_data.value)
+        axios.post('/api/qrcode/asset/to/transfer', { asset: assetList, gatepassId: gatepass_data.value })
+            .then(response => {
+                console.log(response)
+                alert(response.data.message)
+                localStorage.clear()
+                const closeConfirmAssetsToGP = document.querySelector('#closeConfirmAssetsToGP')
+                closeConfirmAssetsToGP.click()
+            })
+            .catch(err => {
+                console.log(err)
+            })
+    })
     // 加入 gatepass 按鈕事件
     addGP_btn.addEventListener('click', () => {
-        alert('這邊渲染 gatepass 下拉選單, 並添加鏡頭功能')
+        let gatepass_data = document.querySelector('#gatepass_data')
+        // alert('這邊渲染 gatepass 下拉選單, 並添加鏡頭功能')
+        console.log('===== 當前 localstorage 內的數據 =====')
+        const temp = JSON.parse(localStorage.getItem('assetToGatepass')) || []
+        console.log(temp)
+        let rawHtml = ''
+        temp.forEach((localdata, index) => {
+            rawHtml += `
+            <div class="row mt-2">
+                <div class="col-2">
+                    ${index + 1}
+                </div>
+                <div class="col-3">
+                    ${localdata.name}
+                </div>
+                <div class="col-3">
+                    ${localdata.id}
+                </div>
+                <div class="col-3">
+                     <img src='${localdata.image}' style='width:60px; height:60px;'>
+                </div>
+            </div>
+            `
+        })
+        prepareToGatepassArea.innerHTML = rawHtml
+        console.log('===== 當前 localstorage 內的數據 =====')
         console.log('axios 到後端請求 gp 所有資料, 在渲染到另外一個 Modal')
+        axios.get('/api/gatepass')
+            .then(gp => {
+                console.log(gp.data.gatepass)
+                let rawHtml = ''
+                gp.data.gatepass.forEach(gatepass => {
+                    if (gatepass.status === 0) {
+                        rawHtml += `
+                    <option value='${gatepass.id}' data-boffice-id='${gatepass.bofficeId.id}'>gpId : ${gatepass.id} From: ${gatepass.bofficeId.name}, To:  ${gatepass.Office.name} 數量: ${gatepass.TransferAsset.length}</option>
+                    `
+                    }
+
+                })
+                gatepass_data.innerHTML = rawHtml
+            })
+            .catch(err => {
+                console.log(err)
+            })
+        openCamera(addAssetScanner)
+
+        addAssetScanner.addListener('scan', function (content) {
+            //console.log(content)
+            // 分辨 QR code 類型
+            let gatepassId = content.match(/gatepassId=\d+/)
+            let assetId = content.match(/assetId=\d+/)
+
+            if (gatepassId) {
+                console.log('辨別為 gatepass qrcode')
+                gatepassId = gatepassId[0].replace(/gatepassId=/, '')
+                alert('當前為 gatepass QR code, 請掃描資產 QR code')
+            } else if (assetId) {
+                assetId = assetId[0].replace(/assetId=/, '')
+                console.log('辨別為 asset qrcode : ' + assetId)
+                alert('辨別為資產 qrcode : ' + assetId)
+                // 資產判斷與當前 gatepassId 辦公室是否相同, 才進入後端判斷是否已在 gatepass
+                axios.post('/api/qrcode/asset', {
+                    assetId
+                })
+                    .then(response => {
+                        // alert(response)
+
+                        console.log(response.data)
+                        const assetOfficeId = response.data.response.Office.id
+                        const b_officeId = $('#gatepass_data').find('option:selected').attr('data-boffice-id')
+                        alert(assetOfficeId)
+                        console.log(typeof assetOfficeId)
+                        alert(b_officeId)
+                        console.log(typeof b_officeId)
+                        if (Number(assetOfficeId) === Number(b_officeId)) {
+                            console.log('準備判斷該資產是否已在 gatepass 中')
+                            alert('準備判斷資產是否已在 gatepass 中')
+                            axios.post('/api/qrcode/asset/transfer', {
+                                assetId,
+                                gpId: gatepass_data.value
+                            })
+                                .then(response => {
+                                    console.log(response)
+                                    alert(response.data.message)
+                                    // alert(response.data.inTransfer)
+                                    if (response.data.inTransfer) {
+                                        alert('該資產已在移轉中, 無法加入新的 gatepass')
+                                    } else {
+                                        alert('準備放入待加入資產列表, 存入 localstorage')
+                                        // 這邊存入 localstorage 前, 要再判斷是否已在原本的 localstorage 中, 若在裡面不加入, 否則必須加入
+
+                                        console.log('===== 當前瀏覽器內資料 =====')
+
+                                        console.log(localstorageArray)
+                                        let result = localstorageArray.find(item => item.id === response.data.data.id)
+                                        console.log('===== 比對結果 =====')
+                                        console.log(result)
+                                        console.log('===== 比對結果 =====')
+                                        if (result === undefined) {
+                                            localstorageArray.push(response.data.data)
+                                        }
+                                        console.log('===== 最後瀏覽器內資料 =====')
+                                        console.log(localstorageArray)
+                                        console.log('===== 最後瀏覽器內資料 =====')
+                                        localStorage.setItem(STORAGE_KEY, JSON.stringify(localstorageArray))
+                                        let rawHtml = ''
+                                        // 渲染目前的待加入資產列表
+                                        localstorageArray.forEach((aaaa, index) => {
+                                            rawHtml += `
+                                            <div class="row mt-2">
+                                                <div class="col-2">
+                                                    ${index + 1}
+                                                </div>
+                                                <div class="col-3">
+                                                    ${aaaa.name}
+                                                </div>
+                                                <div class="col-3">
+                                                    ${aaaa.id}
+                                                </div>
+                                                <div class="col-3">
+                                                     <img src='${aaaa.image}' style='width:60px; height:60px;'>
+                                                </div>
+                                            </div>
+                                            `
+                                        })
+
+                                        // 渲染瀏覽器內存放的資產
+                                        prepareToGatepassArea.innerHTML = rawHtml
+
+                                    }
+                                })
+                                .catch(err => {
+                                    console.log(err)
+                                })
+                        } else {
+                            alert('請選擇與 gatepass 相同來源辦公室的資產進行移轉')
+                        }
+                    })
+                    .catch(err => {
+                        console.log(err)
+                    })
+            } else {
+                alert('請輸入公司格式的 qrcode')
+            }
+        })
 
     })
     // 成立 Gatepass 按鈕事件
@@ -415,6 +600,7 @@
                 })
         }
     })
+
     // 單個資產移轉 按鈕事件
     singleAssetGatepass.addEventListener('click', () => {
         console.log('點擊單個資產移轉按鈕')
@@ -448,6 +634,7 @@
         // 2. 選擇現有 Gatepass 加入
         // 請求現有 Gatepass 選單
     })
+
     singleAssetDetail.addEventListener('click', () => {
         console.log('請求單個資產詳情')
         axios.post('/api/qrcode/asset', { assetId })
@@ -545,154 +732,154 @@
                 console.log(err)
             })
     })
-
-    multipleAsset.addEventListener('click', () => {
-        console.log('整包資產到貨')
-        let conformAllAssetsStatus = confirm('確認當前所有資產到貨?')
-        if (conformAllAssetsStatus) {
-            console.log('準備到後端修改當前gatepass資產的狀態')
-            const gatepassId = multipleAsset.getAttribute('data-id')
-            axios.post('/api/gatepass/package/received', { gatepassId })
-                .then(reply => {
-                    console.log(reply.data.gatepassStatus)
-                    if (reply.data.status === 200) {
-                        alert('貨品已全部到貨, 狀態已修改, 關閉到貨按鈕')
-                        multipleAsset.disabled = true
-                        multipleAsset.innerHTML = 'gatepass 已到貨'
-                        multipleAsset.classList.remove('btn-outline-primary')
-                        multipleAsset.classList.add('btn-success')
-                    } else {
-                        console.log('失敗請求...')
-                    }
-                }).catch(err => {
+    /*
+        multipleAsset.addEventListener('click', () => {
+            console.log('整包資產到貨')
+            let conformAllAssetsStatus = confirm('確認當前所有資產到貨?')
+            if (conformAllAssetsStatus) {
+                console.log('準備到後端修改當前gatepass資產的狀態')
+                const gatepassId = multipleAsset.getAttribute('data-id')
+                axios.post('/api/gatepass/package/received', { gatepassId })
+                    .then(reply => {
+                        console.log(reply.data.gatepassStatus)
+                        if (reply.data.status === 200) {
+                            alert('貨品已全部到貨, 狀態已修改, 關閉到貨按鈕')
+                            multipleAsset.disabled = true
+                            multipleAsset.innerHTML = 'gatepass 已到貨'
+                            multipleAsset.classList.remove('btn-outline-primary')
+                            multipleAsset.classList.add('btn-success')
+                        } else {
+                            console.log('失敗請求...')
+                        }
+                    }).catch(err => {
+                        console.log(err)
+                    })
+            } else {
+                console.log('返回當前頁')
+            }
+        })
+    
+        modifyAsset.addEventListener('click', () => {
+            console.log('修改資產使用情況')
+            const modifyAsset_Modal_body_form = document.querySelector('#modifyAsset-Modal-body-form')
+            const modifyAssetImage = document.querySelector('#modifyAssetImage')
+            Promise.all([axios.post('/api/qrcode/asset', { assetId }), axios.post('/api/qrcode/category'), axios.post('/api/qrcode/office'), axios.post('/api/qrcode/status')])
+                .then(([asset, category, office, status]) => {
+                    console.log('===========================')
+                    console.log('Asset')
+                    console.log(asset)
+                    console.log('category')
+                    console.log(category)
+                    console.log('office')
+                    console.log(office)
+                    console.log('===========================')
+                    modifyAssetImage.src = asset.data.response.image
+                    let rawHtml = `
+                    <input type="hidden" name="assetId" value="${asset.data.response.id}">
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="inputState">類別</label>
+                            <select id="inputState" class="form-control"  name='category_id'>
+                    `
+                    // 渲染 類別下拉式選單
+                    category.data.response.forEach(categories => {
+                        if (categories.id === asset.data.response.Category.id) {
+                            rawHtml += `
+                            <option selected value='${categories.id}'>${categories.name}</option>
+                            `
+                        } else {
+                            rawHtml += `
+                            <option value='${categories.id}'>${categories.name}</option>
+                            `
+                        }
+                    })
+                    rawHtml += `
+                            </select>
+                        </div>
+                        <div class="form-group col-md-6">
+                          <label for="input_name">資產名稱</label>
+                          <input type="text" class="form-control" id="input_name" value='${asset.data.response.name}' name='name'>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                          <label for="input_Vendor">廠牌</label>
+                          <input type="text" class="form-control" id="input_Vendor" value='${asset.data.response.Vendor}' name='Vendor'>
+                        </div>
+                        <div class="form-group col-md-6">
+                          <label for="input_Model">型號</label>
+                          <input type="text" class="form-control" id="input_Model" value='${asset.data.response.Model}' name='Model'>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="inputState">狀態</label>
+                            <select id="inputState" class="form-control"  name='status_id'>`
+    
+                    // 渲染 狀態下拉式選單
+                    status.data.response.forEach(statuses => {
+                        if (statuses.id === asset.data.response.Status.id) {
+                            rawHtml += `
+                            <option selected value='${statuses.id}'>${statuses.name}</option>
+                            `
+                        } else {
+                            rawHtml += `
+                            <option value='${statuses.id}'>${statuses.name}</option>
+                            `
+                        }
+                    })
+                    rawHtml += `
+                            </select>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="inputState">位置</label>
+                            <select id="inputState" class="form-control" name='office_id'>
+                                `
+    
+                    // 渲染 位置下拉式選單
+                    office.data.response.forEach(offices => {
+                        if (offices.id === asset.data.response.Office.id) {
+                            rawHtml += `
+                            <option selected value='${offices.id}'>${offices.name}</option>
+                            `
+                        } else {
+                            rawHtml += `
+                            <option value='${offices.id}'>${offices.name}</option>
+                            `
+                        }
+                    })
+                    rawHtml += `
+                            </select>
+                        </div>
+                    </div>
+    
+                    <div class="form-row">               
+                        <div class="form-group col-md-12">
+                          <label for="input_Model">描述</label>
+                          <input type="text" class="form-control" id="input_Description" name='Description' value='${asset.data.response.Description}'>
+                        </div>
+                    </div>
+    
+                    <div class="form-row">
+                        <div class="form-group">
+                        <label for="input_image">圖片</label>
+                        <input type="file" class="form-control-file" id="input_image" name='image'>
+                        </div>
+                    </div>
+    
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-danger">確認修改</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
+                    `
+                    modifyAsset_Modal_body_form.innerHTML = rawHtml
+                })
+                .catch(err => {
                     console.log(err)
                 })
-        } else {
-            console.log('返回當前頁')
-        }
-    })
-
-    modifyAsset.addEventListener('click', () => {
-        console.log('修改資產使用情況')
-        const modifyAsset_Modal_body_form = document.querySelector('#modifyAsset-Modal-body-form')
-        const modifyAssetImage = document.querySelector('#modifyAssetImage')
-        Promise.all([axios.post('/api/qrcode/asset', { assetId }), axios.post('/api/qrcode/category'), axios.post('/api/qrcode/office'), axios.post('/api/qrcode/status')])
-            .then(([asset, category, office, status]) => {
-                console.log('===========================')
-                console.log('Asset')
-                console.log(asset)
-                console.log('category')
-                console.log(category)
-                console.log('office')
-                console.log(office)
-                console.log('===========================')
-                modifyAssetImage.src = asset.data.response.image
-                let rawHtml = `
-                <input type="hidden" name="assetId" value="${asset.data.response.id}">
-                <div class="form-row">
-                    <div class="form-group col-md-6">
-                        <label for="inputState">類別</label>
-                        <select id="inputState" class="form-control"  name='category_id'>
-                `
-                // 渲染 類別下拉式選單
-                category.data.response.forEach(categories => {
-                    if (categories.id === asset.data.response.Category.id) {
-                        rawHtml += `
-                        <option selected value='${categories.id}'>${categories.name}</option>
-                        `
-                    } else {
-                        rawHtml += `
-                        <option value='${categories.id}'>${categories.name}</option>
-                        `
-                    }
-                })
-                rawHtml += `
-                        </select>
-                    </div>
-                    <div class="form-group col-md-6">
-                      <label for="input_name">資產名稱</label>
-                      <input type="text" class="form-control" id="input_name" value='${asset.data.response.name}' name='name'>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group col-md-6">
-                      <label for="input_Vendor">廠牌</label>
-                      <input type="text" class="form-control" id="input_Vendor" value='${asset.data.response.Vendor}' name='Vendor'>
-                    </div>
-                    <div class="form-group col-md-6">
-                      <label for="input_Model">型號</label>
-                      <input type="text" class="form-control" id="input_Model" value='${asset.data.response.Model}' name='Model'>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group col-md-6">
-                        <label for="inputState">狀態</label>
-                        <select id="inputState" class="form-control"  name='status_id'>`
-
-                // 渲染 狀態下拉式選單
-                status.data.response.forEach(statuses => {
-                    if (statuses.id === asset.data.response.Status.id) {
-                        rawHtml += `
-                        <option selected value='${statuses.id}'>${statuses.name}</option>
-                        `
-                    } else {
-                        rawHtml += `
-                        <option value='${statuses.id}'>${statuses.name}</option>
-                        `
-                    }
-                })
-                rawHtml += `
-                        </select>
-                    </div>
-                    <div class="form-group col-md-6">
-                        <label for="inputState">位置</label>
-                        <select id="inputState" class="form-control" name='office_id'>
-                            `
-
-                // 渲染 位置下拉式選單
-                office.data.response.forEach(offices => {
-                    if (offices.id === asset.data.response.Office.id) {
-                        rawHtml += `
-                        <option selected value='${offices.id}'>${offices.name}</option>
-                        `
-                    } else {
-                        rawHtml += `
-                        <option value='${offices.id}'>${offices.name}</option>
-                        `
-                    }
-                })
-                rawHtml += `
-                        </select>
-                    </div>
-                </div>
-
-                <div class="form-row">               
-                    <div class="form-group col-md-12">
-                      <label for="input_Model">描述</label>
-                      <input type="text" class="form-control" id="input_Description" name='Description' value='${asset.data.response.Description}'>
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                    <label for="input_image">圖片</label>
-                    <input type="file" class="form-control-file" id="input_image" name='image'>
-                    </div>
-                </div>
-
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-danger">確認修改</button>
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                </div>
-                `
-                modifyAsset_Modal_body_form.innerHTML = rawHtml
-            })
-            .catch(err => {
-                console.log(err)
-            })
-
-    })
-
+    
+        })
+    */
     checkAsset.addEventListener('click', () => {
         console.log('資產盤點')
     })
@@ -701,7 +888,7 @@
     scanqrcode_btn.addEventListener('click', () => {
         console.log('QR Code 掃描到貨')
         // 默認開啟相機
-        openCamera()
+        openCamera(scanner)
         scanner.addListener('scan', function (content) {
             console.log(content)
             // 分辨 QR code 類型
@@ -736,22 +923,36 @@
         })
     })
 
+    /*
     openCameraSwitch.addEventListener('click', () => {
         const openCameraSwitchLabel = document.querySelector('#openCameraSwitchLabel')
+
+        alert(scanner)
         if (openCameraSwitch.checked === false) {
-            closeCamera()
+            closeCamera(scanner)
             openCameraSwitchLabel.innerHTML = '開啟相機'
         } else {
-            openCamera()
+            openCamera(scanner)
             openCameraSwitchLabel.innerHTML = '關閉相機'
         }
     })
 
-
+    opCameraSwitch.addEventListener('click', () => {
+        const opCameraSwitchLabel = document.querySelector('#opCameraSwitchLabel')
+        if (opCameraSwitch.checked === false) {
+            closeCamera()
+            opCameraSwitchLabel.innerHTML = '開啟相機'
+        } else {
+            openCamera()
+            opCameraSwitchLabel.innerHTML = '關閉相機'
+        }
+    })
+*/
 
     // 開啟鏡頭 
-    function openCamera() {
+    function openCamera(scanner) {
         console.log('呼叫 openCamera()')
+        // alert('呼叫 openCamera()')
         Instascan.Camera.getCameras().then(function (cameras) {
 
             console.log(cameras)
@@ -777,10 +978,15 @@
     }
 
     // 關閉鏡頭
-    function closeCamera() {
+    function closeCamera(scanner) {
         console.log('呼叫 closeCamera()')
+
+
         Instascan.Camera.getCameras().then(function (cameras) {
+            alert('是否找到相機')
+            alert(cameras)
             if (cameras.length > 0) {
+                alert('有偵測到相機, 準備關閉')
                 if (cameras[1]) {
                     scanner.stop(cameras[1]); // [0] 前鏡頭 [1] 後鏡頭 
                 } else {
@@ -792,5 +998,6 @@
             console.error(e);
             alert(e);
         });
+
     }
 </script>
