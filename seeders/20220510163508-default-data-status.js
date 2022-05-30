@@ -3,7 +3,8 @@ const statusName = [
   { name: '閒置中' },
   { name: '使用中' },
   { name: '移轉中' },
-  { name: '待報廢' }
+  { name: '待報廢' },
+  { name: '撿貨中' }
 ]
 
 

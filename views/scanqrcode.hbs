@@ -41,13 +41,12 @@
                 id="singleAssetGatepass" style="height:150px;" data-toggle="modal"
                 data-target="#singleAssetGatepass_Modal" disabled>單個資產移轉</button>
         </div>
-        {{!--
+
         <div class="col-md-6 col-6">
-            <button class="btn btn-outline-primary btn-block" id="scanqrcode_btn" style="height:150px;"
-                data-toggle="modal" data-target="#scanqrcode_Modal">QR Code
-                掃描到貨</button>
+            <a href='/gatepass' style="height:150px; line-height:150px;"
+                class="btn btn-outline-primary btn-block">Gatepass</a>
         </div>
-        --}}
+
     </div>
 
 
@@ -369,10 +368,10 @@
     const package = {{{ package }}}
 
     if (gatepassStatus === 1 && package === 1) {
-        multipleAsset.disabled = true
-        multipleAsset.innerHTML = 'gatepass 已到貨'
-        multipleAsset.classList.remove('btn-outline-primary')
-        multipleAsset.classList.add('btn-success')
+        //multipleAsset.disabled = true
+        //multipleAsset.innerHTML = 'gatepass 已到貨'
+        //multipleAsset.classList.remove('btn-outline-primary')
+        //multipleAsset.classList.add('btn-success')
 
         scanqrcode_btn.disabled = 'true'
         scanqrcode_btn.classList.remove('btn-outline-primary')
@@ -759,41 +758,42 @@
             }
         })
     
-        modifyAsset.addEventListener('click', () => {
-            console.log('修改資產使用情況')
-            const modifyAsset_Modal_body_form = document.querySelector('#modifyAsset-Modal-body-form')
-            const modifyAssetImage = document.querySelector('#modifyAssetImage')
-            Promise.all([axios.post('/api/qrcode/asset', { assetId }), axios.post('/api/qrcode/category'), axios.post('/api/qrcode/office'), axios.post('/api/qrcode/status')])
-                .then(([asset, category, office, status]) => {
-                    console.log('===========================')
-                    console.log('Asset')
-                    console.log(asset)
-                    console.log('category')
-                    console.log(category)
-                    console.log('office')
-                    console.log(office)
-                    console.log('===========================')
-                    modifyAssetImage.src = asset.data.response.image
-                    let rawHtml = `
+    */
+    modifyAsset.addEventListener('click', () => {
+        console.log('修改資產使用情況')
+        const modifyAsset_Modal_body_form = document.querySelector('#modifyAsset-Modal-body-form')
+        const modifyAssetImage = document.querySelector('#modifyAssetImage')
+        Promise.all([axios.post('/api/qrcode/asset', { assetId }), axios.post('/api/qrcode/category'), axios.post('/api/qrcode/office'), axios.post('/api/qrcode/status')])
+            .then(([asset, category, office, status]) => {
+                console.log('===========================')
+                console.log('Asset')
+                console.log(asset)
+                console.log('category')
+                console.log(category)
+                console.log('office')
+                console.log(office)
+                console.log('===========================')
+                modifyAssetImage.src = asset.data.response.image
+                let rawHtml = `
                     <input type="hidden" name="assetId" value="${asset.data.response.id}">
                     <div class="form-row">
                         <div class="form-group col-md-6">
                             <label for="inputState">類別</label>
                             <select id="inputState" class="form-control"  name='category_id'>
                     `
-                    // 渲染 類別下拉式選單
-                    category.data.response.forEach(categories => {
-                        if (categories.id === asset.data.response.Category.id) {
-                            rawHtml += `
+                // 渲染 類別下拉式選單
+                category.data.response.forEach(categories => {
+                    if (categories.id === asset.data.response.Category.id) {
+                        rawHtml += `
                             <option selected value='${categories.id}'>${categories.name}</option>
                             `
-                        } else {
-                            rawHtml += `
+                    } else {
+                        rawHtml += `
                             <option value='${categories.id}'>${categories.name}</option>
                             `
-                        }
-                    })
-                    rawHtml += `
+                    }
+                })
+                rawHtml += `
                             </select>
                         </div>
                         <div class="form-group col-md-6">
@@ -815,40 +815,40 @@
                         <div class="form-group col-md-6">
                             <label for="inputState">狀態</label>
                             <select id="inputState" class="form-control"  name='status_id'>`
-    
-                    // 渲染 狀態下拉式選單
-                    status.data.response.forEach(statuses => {
-                        if (statuses.id === asset.data.response.Status.id) {
-                            rawHtml += `
+
+                // 渲染 狀態下拉式選單
+                status.data.response.forEach(statuses => {
+                    if (statuses.id === asset.data.response.Status.id) {
+                        rawHtml += `
                             <option selected value='${statuses.id}'>${statuses.name}</option>
                             `
-                        } else {
-                            rawHtml += `
+                    } else {
+                        rawHtml += `
                             <option value='${statuses.id}'>${statuses.name}</option>
                             `
-                        }
-                    })
-                    rawHtml += `
+                    }
+                })
+                rawHtml += `
                             </select>
                         </div>
                         <div class="form-group col-md-6">
                             <label for="inputState">位置</label>
                             <select id="inputState" class="form-control" name='office_id'>
                                 `
-    
-                    // 渲染 位置下拉式選單
-                    office.data.response.forEach(offices => {
-                        if (offices.id === asset.data.response.Office.id) {
-                            rawHtml += `
+
+                // 渲染 位置下拉式選單
+                office.data.response.forEach(offices => {
+                    if (offices.id === asset.data.response.Office.id) {
+                        rawHtml += `
                             <option selected value='${offices.id}'>${offices.name}</option>
                             `
-                        } else {
-                            rawHtml += `
+                    } else {
+                        rawHtml += `
                             <option value='${offices.id}'>${offices.name}</option>
                             `
-                        }
-                    })
-                    rawHtml += `
+                    }
+                })
+                rawHtml += `
                             </select>
                         </div>
                     </div>
@@ -872,14 +872,14 @@
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                     </div>
                     `
-                    modifyAsset_Modal_body_form.innerHTML = rawHtml
-                })
-                .catch(err => {
-                    console.log(err)
-                })
-    
-        })
-    */
+                modifyAsset_Modal_body_form.innerHTML = rawHtml
+            })
+            .catch(err => {
+                console.log(err)
+            })
+
+    })
+
     checkAsset.addEventListener('click', () => {
         console.log('資產盤點')
     })

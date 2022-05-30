@@ -1,0 +1,275 @@
+<div class="container">
+    <nav class="nav  nav-tabs">
+        <a class="nav-link" href="/">首頁</a>
+        <a class="nav-link active" href="#">GatePass</a>
+
+    </nav>
+    <div class="row mt-2">
+        <div class="col-12">
+
+            <a href='/gatepass/empty' class="btn btn-outline-primary btn-block">新增 Gatepass</a>
+
+            <table class="table table-hover mt-2">
+                <thead>
+                    <tr>
+                        <th scope="col">ID</th>
+                        <th scope="col">移轉前</th>
+                        <th scope="col">移轉後</th>
+                        <th scope="col">GP狀態</th>
+                        <th scope="col">詳情</th>
+                        {{!-- <th scope="col">Description</th> --}}
+                    </tr>
+                </thead>
+                <tbody id="datatbody">
+                    {{!-- 要放 gatepass 資料的地方 --}}
+                </tbody>
+            </table>
+            <nav aria-label="Page navigation example">
+                <ul class="pagination justify-content-center" id="dataPagination">
+                    <li class="page-item {{#ifCond pagination.currentPage 1}}disabled{{/ifCond}}">
+                        <a class="page-link" href="/officeAssets?page={{pagination.prev}}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    {{#each pagination.pages}}
+                    {{#ifCond this ../pagination.currentPage}}
+                    <li class="page-item active"><a class="page-link" href="#">{{this}}</a></li>
+                    {{else}}
+                    <li class="page-item">
+                        <a class="page-link" href="/officeAssets?page={{this}}">{{this}}</a>
+                    </li>
+                    {{/ifCond}}
+                    {{/each}}
+                    <li class="page-item {{#ifCond pagination.currentPage pagination.totalPage}}disabled{{/ifCond}}">
+                        <a class="page-link" href="/officeAssets?page={{pagination.next}}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+
+    </div>
+
+    <div id="qrcodeCanvas"></div>
+</div>
+
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script>
+
+    const datatbody = document.querySelector('#datatbody')
+
+
+
+
+    // 初始渲染畫面
+    axios.get('/api/gatepass').then(response => {
+        if (response.status === 200) {
+            console.log('========================')
+            console.log(response.data.gatepass)
+            console.log('========================')
+            const gatepass = response.data.gatepass
+            let rawHtml = ''
+
+            gatepass.forEach(gp => {
+
+                console.log(gp)
+
+
+                rawHtml += `
+                    <tr class="assetTr">
+                    <th scope="row" class="">${gp.id}</th>
+                `
+
+                let rawHtmlbeforeOfficeArea = ''
+                rawHtmlbeforeOfficeArea += `
+                    <td>${gp.bofficeId.name}
+                    `
+                rawHtml += rawHtmlbeforeOfficeArea
+                rawHtml += `</td><td id="gatepass_AfterOffice">${gp.Office.name}</td><td id="gatepass_status">`
+                if (gp.status === 0) {
+                    rawHtml += '移轉中'
+                } else if (gp.status === 1) {
+                    rawHtml += '移轉完成'
+                } else if (gp.status === 2) {
+                    rawHtml += '部分到貨'
+                } else if (gp.status === 5) {
+                    rawHtml += '撿貨中'
+                }
+
+                rawHtml += `</td>
+                <td id="gatepass_detail" data-id='${gp.id}'><button class='btn btn-outline-info' data-toggle="modal" data-target="#modal_${gp.id}">查看</button></td>
+                <!-- Modal -->
+                <div class="modal fade" id="modal_${gp.id}" tabindex="-1">
+                  <div class="modal-dialog">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Gatepass 詳細內容</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                          <span aria-hidden="true">&times;</span>
+                        </button>
+                      </div>
+                      <div class="modal-body">`
+                if (gp.status === 0) {
+                    rawHtml += `<div class="position-relative m-5 mt-5">
+                            <div class=" progress" style="height: 5px;">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+                                    style="width: 66.6%;">
+                                </div>
+                            </div>
+                            <button type="button"
+                                class="position-absolute top-0 start-0 translate-middle btn btn-sm btn-primary rounded-pill"
+                                style="width: 2rem; height:2rem;">1</button>
+
+                            <button type="button"
+                                class="position-absolute top-0 start-50 translate-middle btn btn-sm btn-primary rounded-pill"
+                                style="width: 2rem; height:2rem; left:33.3%!important;">2</button>
+                            <button type="button"
+                                class="position-absolute top-0 start-50 translate-middle btn btn-sm btn-primary rounded-pill"
+                                style="width: 2rem; height:2rem; left:66.6%!important;">3</button>
+                            <button type="button"
+                                class="position-absolute top-0 start-100 translate-middle btn btn-sm btn-secondary rounded-pill"
+                                style="width: 2rem; height:2rem; ">4</button>
+
+                        </div>
+
+                        <div >
+                        <img src="${gp.qrcode}" alt="" style="width:100px; height:100px;display:block;margin: 0 auto; " id="gatepass_qrcode">
+                        <div>起單時間: `
+                } else if (gp.status === 1) {
+                    rawHtml += `<div class="position-relative m-5 mt-5">
+                            <div class=" progress" style="height: 5px;">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+                                    style="width: 100%;">
+                                </div>
+                            </div>
+                            <button type="button"
+                                class="position-absolute top-0 start-0 translate-middle btn btn-sm btn-primary rounded-pill"
+                                style="width: 2rem; height:2rem;">1</button>
+
+                            <button type="button"
+                                class="position-absolute top-0 start-50 translate-middle btn btn-sm btn-primary rounded-pill"
+                                style="width: 2rem; height:2rem; left:33.3%!important;">2</button>
+                            <button type="button"
+                                class="position-absolute top-0 start-50 translate-middle btn btn-sm btn-primary rounded-pill"
+                                style="width: 2rem; height:2rem; left:66.6%!important;">3</button>
+                            <button type="button"
+                                class="position-absolute top-0 start-100 translate-middle btn btn-sm btn-primary rounded-pill"
+                                style="width: 2rem; height:2rem; ">4</button>
+
+                        </div>
+
+                        <div >
+                        <img src="${gp.qrcode}" alt="" style="width:100px; height:100px;display:block;margin: 0 auto; " id="gatepass_qrcode">
+                        <div>起單時間: `
+                } else if (gp.status === 2) {
+                    rawHtml += `<div class="position-relative m-5 mt-5">
+                            <div class=" progress" style="height: 5px;">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+                                    style="width: 66.6%;">
+                                </div>
+                            </div>
+                            <button type="button"
+                                class="position-absolute top-0 start-0 translate-middle btn btn-sm btn-primary rounded-pill"
+                                style="width: 2rem; height:2rem;">1</button>
+
+                            <button type="button"
+                                class="position-absolute top-0 start-50 translate-middle btn btn-sm btn-primary rounded-pill"
+                                style="width: 2rem; height:2rem; left:33.3%!important;">2</button>
+                            <button type="button"
+                                class="position-absolute top-0 start-50 translate-middle btn btn-sm btn-primary rounded-pill"
+                                style="width: 2rem; height:2rem; left:66.6%!important;">3</button>
+                            <button type="button"
+                                class="position-absolute top-0 start-100 translate-middle btn btn-sm btn-secondary rounded-pill"
+                                style="width: 2rem; height:2rem; ">4</button>
+
+                        </div>
+
+                        <div >
+                        <img src="${gp.qrcode}" alt="" style="width:100px; height:100px;display:block;margin: 0 auto; " id="gatepass_qrcode">
+                        <div>起單時間: `
+                } else if (gp.status === 5) {
+                    rawHtml += `<div class="position-relative m-5 mt-5">
+                            <div class=" progress" style="height: 5px;">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+                                    style="width: 33.3%;">
+                                </div>
+                            </div>
+                            <button type="button"
+                                class="position-absolute top-0 start-0 translate-middle btn btn-sm btn-primary rounded-pill"
+                                style="width: 2rem; height:2rem;">1</button>
+
+                            <button type="button"
+                                class="position-absolute top-0 start-50 translate-middle btn btn-sm btn-primary rounded-pill"
+                                style="width: 2rem; height:2rem; left:33.3%!important;">2</button>
+                            <button type="button"
+                                class="position-absolute top-0 start-50 translate-middle btn btn-sm btn-secondary rounded-pill"
+                                style="width: 2rem; height:2rem; left:66.6%!important;">3</button>
+                            <button type="button"
+                                class="position-absolute top-0 start-100 translate-middle btn btn-sm btn-secondary rounded-pill"
+                                style="width: 2rem; height:2rem; ">4</button>
+
+                        </div>
+
+                        <div >
+                        <img src="${gp.qrcode}" alt="" style="width:100px; height:100px;display:block;margin: 0 auto; " id="gatepass_qrcode">
+                        <div>起單時間: `
+                }
+                rawHtml += moment(gp.createdAt).format('lll') + `</div ><div>修改時間: ` + moment(gp.updatedAt).format('lll') +
+                    `
+                    </div>
+                    <div>
+                        未到數量/移轉數量 : <span class='text-danger'>${gp.countquantity}</span>/${gp.quantity}
+                    </div>
+                    <div>
+                        起單人: ${gp.username}
+                    </div>`
+                let rawData = ''
+                gp.TransferAsset.forEach(item => {
+                    rawData += `<hr>
+                        <div class='row mt-2'>
+                            <div class='col-1'>${item.id}</div>
+                            <div class='col-2'><img src='${item.image}' style='width:50px; height:50px;'></div>
+                            <div class='col-3'>${item.name}</div>
+                            <div class='col-3'>${item.Model}</div>
+                            <div class='col-3'>${item.Transfer.received}</div>
+                        </div>
+                        `
+                })
+                rawHtml += rawData + `</div><div class="modal-footer mt-2">`
+                console.log('===========================')
+                console.log(typeof gp.status)
+                console.log('===========================')
+                if (gp.status === 5) {
+                    rawHtml += `<button type="button" class="btn btn-block btn-outline-primary addAsset" id='${gp.id}' >新增資產</button></div></div></div></div>`
+                } else if (gp.status === 0) {
+                    rawHtml += `<button type="button" class="btn btn-block btn-outline-danger addAsset" id='${gp.id}'disabled >移轉中</button></div></div></div></div>`
+                } else {
+                    rawHtml += `<button type="button" class="btn btn-block btn-outline-success addAsset" id='${gp.id}' disabled>移轉完成</button></div></div></div></div>`
+                }
+            })
+            datatbody.innerHTML = rawHtml
+
+
+        }
+
+
+        // 查看內部按鈕事件
+        datatbody.addEventListener('click', (event) => {
+            console.log(event.target)
+            const target = event.target
+
+            if (target.classList.contains('addAsset')) {
+                const gatepassId = target.id
+                axios.post('/api/gatepass/get', { gatepassId: gatepassId })
+                    .then(response => {
+                        console.log(response)
+                        if (response.data.gatepass.status === 5) {
+                            alert('當前 gatepass 為撿貨中')
+                            window.location.href = `https://10.4.100.241:3000/gatepass/edit?id=${response.data.gatepass.id}`
+                        }
+                    })
+            }
+        })
+    })
+</script>

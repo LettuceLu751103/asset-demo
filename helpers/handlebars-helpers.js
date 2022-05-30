@@ -9,8 +9,8 @@ module.exports = {
             return '移轉完成'
         } else if (statusCode === 2) {
             return '到貨部分資產'
-        } else {
-            return '未知'
+        } else if (statusCode === 5) {
+            return '撿貨中'
         }
     }
 }

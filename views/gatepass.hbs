@@ -1,66 +1,25 @@
 <div class="container">
     <nav class="nav  nav-tabs">
         <a class="nav-link" href="/">首頁</a>
-        <a class="nav-link" aria-current="page" href="/categories">資產類別</a>
-        <a class="nav-link" href="/offices">辦公室類別</a>
         <a class="nav-link" href="/officeAssets">辦公室資產</a>
         <a class="nav-link active" href="#">GatePass</a>
-        <a class="nav-link" href="/#">QR code入口</a>
+
     </nav>
-
     <div class="row mt-2">
-
         <div class="col-md-12">
+            <div class="col-6">
+                <div class="row align-items-center">
+                    <a href='/gatepass/empty' class="btn btn-outline-primary btn-block">新增 Gatepass</a>
+                </div>
+            </div>
 
-            <form action="/officeAssets" method="get" class="form-inline">
-                <div class="col-3">
-                    <select class="form-select mt-2" aria-label="Default select example" id="officeSelector"
-                        name="officeId" disabled>
-                        <option value="" selected>全部辦公室</option>
-                        {{#each office}}
-                        <option value="{{this.id}}" class="{{#ifCond this.id ../officeId}}active{{/ifCond}}" {{#ifCond
-                            this.id ../officeId}}selected{{/ifCond}}>
-                            {{this.name}}
-                        </option>
-                        {{/each}}
-                    </select>
-                </div>
-                <div class="col-3">
-                    <select class="form-select mt-2" aria-label="Default select example" id="officeSelector"
-                        name="categoryId" disabled>
-                        <option value="" selected>全部類別</option>
-                        {{#each category}}
-                        <option value="{{this.id}}" class="{{#ifCond this.id ../categoryId}}active{{/ifCond}}" {{#ifCond
-                            this.id ../categoryId}}selected{{/ifCond}}>
-                            {{this.name}}
-                        </option>
-                        {{/each}}
-                    </select>
-                </div>
-                <div class="col-6">
-                    <div class="input-group mt-2">
-                        <input type="text" class="form-control" id="searchOffice" placeholder="搜尋 Gatepass"
-                            name="searchString" value="{{searchName}}" disabled>
-                        <div class=" input-group-append">
-                            <button class="btn btn-outline-secondary" type="submit" id="button-addon2"
-                                disabled>搜尋</button>
-                        </div>
-                    </div>
-                </div>
-
-            </form>
             <table class="table table-hover mt-2">
                 <thead>
                     <tr>
-                        <th scope="col">GP ID</th>
-                        <th scope="col">移轉品項</th>
-                        <th scope="col">移轉前位置</th>
-                        <th scope="col">移轉後位置</th>
-                        <th scope="col">當前GP狀態</th>
-                        <th scope="col">起單人</th>
-                        <th scope="col">qrcode</th>
-                        <th scope="col">起單時間</th>
-                        <th scope="col">修改時間</th>
+                        <th scope="col">ID</th>
+                        <th scope="col">移轉前</th>
+                        <th scope="col">移轉後</th>
+                        <th scope="col">GP狀態</th>
                         <th scope="col">詳情</th>
                         {{!-- <th scope="col">Description</th> --}}
                     </tr>
@@ -122,20 +81,12 @@
                 rawHtml += `
                     <tr class="assetTr">
                     <th scope="row" class="">${gp.id}</th>
-                    <td>
+                    
                 `
-                let ulArea = ''
-                gp.TransferAsset.forEach(asset => {
-
-                    ulArea += `
-                    <ul>${asset.name}</ul>
-                    `
-                })
-                rawHtml += ulArea + `</td><td>`
 
                 let rawHtmlbeforeOfficeArea = ''
                 rawHtmlbeforeOfficeArea += `
-                    <ul>${gp.bofficeId.name}</ul>
+                    <td>${gp.bofficeId.name}
                     `
                 rawHtml += rawHtmlbeforeOfficeArea
                 rawHtml += `</td><td id="gatepass_AfterOffice">${gp.Office.name}</td><td id="gatepass_status">`
@@ -145,41 +96,74 @@
                     rawHtml += '移轉完成'
                 } else if (gp.status === 2) {
                     rawHtml += '部分資產到貨'
-                } else {
-                    rawHtml += '未知'
+                } else if (gp.status === 5) {
+                    rawHtml += '撿貨中'
                 }
 
                 rawHtml += `</td>
-                        <td id="gatepass_username">${gp.username}</td>
-                        <td><img src="${gp.qrcode}" alt="" style="width:30px; height:30px;" id="gatepass_qrcode">
-                        </td>`
-
-                rawHtml += `
-                <td id="gatepass_createdAt">`+ moment(gp.createdAt).format('lll') + `</td>
-                `
-                rawHtml += `
-                <td id="gatepass_updatedAt">`+ moment(gp.updatedAt).format('lll') + `</td>
-                `
-
-                rawHtml += `
                 <td id="gatepass_detail" data-id='${gp.id}'><button class='btn btn-outline-info' data-toggle="modal" data-target="#modal_${gp.id}">查看</button></td>
                 <!-- Modal -->
                 <div class="modal fade" id="modal_${gp.id}" tabindex="-1">
                   <div class="modal-dialog">
                     <div class="modal-content">
                       <div class="modal-header">
-                        <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+                        <h5 class="modal-title" id="exampleModalLabel">Gatepass 詳細內容</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                           <span aria-hidden="true">&times;</span>
                         </button>
                       </div>
                       <div class="modal-body">
-                        ...
-                      </div>
-                      <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-primary">Save changes</button>
-                      </div>
+                        <div class="position-relative m-5 mt-5">
+                            <div class=" progress" style="height: 5px;">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+                                    style="width: 66.6%;">
+                                </div>
+                            </div>
+                            <button type="button"
+                                class="position-absolute top-0 start-0 translate-middle btn btn-sm btn-primary rounded-pill"
+                                style="width: 2rem; height:2rem;">1</button>
+
+                            <button type="button"
+                                class="position-absolute top-0 start-50 translate-middle btn btn-sm btn-primary rounded-pill"
+                                style="width: 2rem; height:2rem; left:33.3%!important;">2</button>
+                            <button type="button"
+                                class="position-absolute top-0 start-50 translate-middle btn btn-sm btn-primary rounded-pill"
+                                style="width: 2rem; height:2rem; left:66.6%!important;">3</button>
+                            <button type="button"
+                                class="position-absolute top-0 start-100 translate-middle btn btn-sm btn-secondary rounded-pill"
+                                style="width: 2rem; height:2rem; ">4</button>
+
+                        </div>
+
+                        <div >
+                        <img src="${gp.qrcode}" alt="" style="width:100px; height:100px;display:block;margin: 0 auto; " id="gatepass_qrcode">
+                        <div>起單時間: ` + moment(gp.createdAt).format('lll') + `</div ><div>修改時間: ` + moment(gp.updatedAt).format('lll') +
+                    `
+                    </div>
+                    <div>
+                        未到數量/移轉數量 : <span class='text-danger'>${gp.countquantity}</span>/${gp.quantity}
+                    </div>
+                    <div>
+                        起單人: ${gp.username}
+                    </div>`
+                let rawData = ''
+                gp.TransferAsset.forEach(item => {
+                    rawData += `<hr>
+                        <div class='row mt-2'>
+                            <div class='col-1'>${item.id}</div>
+                            <div class='col-2'><img src='${item.image}' style='width:50px; height:50px;'></div>
+                            <div class='col-3'>${item.name}</div>
+                            <div class='col-3'>${item.Model}</div>
+                            <div class='col-3'>${item.Transfer.received}</div>
+                        </div>
+                        `
+                })
+                rawHtml += rawData +
+
+                    `</div>
+                    <div class="modal-footer mt-2">
+                    <button type="button" class="btn btn-block btn-outline-primary">修改</button>
+                    </div>
                     </div>
                   </div>
                 </div>

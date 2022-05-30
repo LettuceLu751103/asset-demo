@@ -1,0 +1,76 @@
+<div class="container">
+
+    <div class="card">
+        <div class="card-header">
+            創建 Gatepass
+        </div>
+        <div class="position-relative m-5 mt-5">
+            <div class=" progress" style="height: 5px;">
+                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+                    style="width: 0%;">
+                </div>
+            </div>
+            <button type="button"
+                class="position-absolute top-0 start-0 translate-middle btn btn-sm btn-primary rounded-pill"
+                style="width: 2rem; height:2rem;">1</button>
+
+            <button type="button"
+                class="position-absolute top-0 start-50 translate-middle btn btn-sm btn-secondary rounded-pill"
+                style="width: 2rem; height:2rem; left:33.3%!important;">2</button>
+            <button type="button"
+                class="position-absolute top-0 start-50 translate-middle btn btn-sm btn-secondary rounded-pill"
+                style="width: 2rem; height:2rem; left:66.6%!important;">3</button>
+            <button type="button"
+                class="position-absolute top-0 start-100 translate-middle btn btn-sm btn-secondary rounded-pill"
+                style="width: 2rem; height:2rem; ">4</button>
+
+        </div>
+        <div class="card-body">
+            <form action="/gatepass/empty" method="post" onSubmit="return check();">
+                <div class='row'>
+                    <div><label for="fromOffice">選擇起始位置</label></div>
+                </div>
+                <div class='row'>
+                    <select class="custom-select" id='fromOffice' name="fromOfficeId">
+                        {{#each offices}}
+                        <option value="{{this.id}}">{{this.name}}</option>
+                        {{/each}}
+                    </select>
+                </div>
+                <div class='row mt-5'>
+                    <div><label for="toOffice">選擇目的位置</label></div>
+                </div>
+                <div class='row'>
+                    <select class="custom-select" id='toOffice' name="toOfficeId">
+                        {{#each offices}}
+                        <option value="{{this.id}}">{{this.name}}</option>
+                        {{/each}}
+                    </select>
+                </div>
+                <button class="btn btn-outline-primary btn-block mt-5" id="createBtn"> 創建 gatepass </button>
+            </form>
+        </div>
+    </div>
+
+</div>
+<script>
+    const createBtn = document.querySelector('#createBtn')
+    const fromOfficeId = document.querySelector('#fromOffice')
+    const toOfficeId = document.querySelector('#toOffice')
+    createBtn.addEventListener('click', (event) => {
+
+        console.log(fromOfficeId.value)
+        console.log(toOfficeId)
+
+
+    })
+    function check() {
+
+        if (fromOfficeId.value === toOfficeId.value) {
+            alert('來源和目的地不能相同!!!')
+            return false
+        } else {
+            return true
+        }
+    }
+</script>
