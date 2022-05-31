@@ -244,6 +244,8 @@
                     rawHtml += `<button type="button" class="btn btn-block btn-outline-primary addAsset" id='${gp.id}' >新增資產</button></div></div></div></div>`
                 } else if (gp.status === 0) {
                     rawHtml += `<button type="button" class="btn btn-block btn-outline-danger addAsset" id='${gp.id}'disabled >移轉中</button></div></div></div></div>`
+                } else if (gp.status === 2) {
+                    rawHtml += `<button type="button" class="btn btn-block btn-outline-danger addAsset" id='${gp.id}'disabled >部分到貨</button></div></div></div></div>`
                 } else {
                     rawHtml += `<button type="button" class="btn btn-block btn-outline-success addAsset" id='${gp.id}' disabled>移轉完成</button></div></div></div></div>`
                 }

@@ -363,59 +363,7 @@ app.get('/gatepass', (req, res) => {
 
 })
 
-// gatepass render get api 
-app.get('/api/gatepass', (req, res) => {
-  console.log('收到查詢 Gatepass 請求')
 
-
-  Gatepass.findAll({
-    // raw: true,
-    nest: true,
-    include: [
-      { model: Office, as: 'bofficeId' },
-      { model: Office },
-      // { model: Office, as: 'aofficeId' },
-      {
-        model: Asset,
-        as: 'TransferAsset',
-        nest: true,
-        raw: true,
-        include: { model: Office, model: Status },
-        // attributes: ['name', 'officeId']
-      }
-    ],
-    order: [
-      ['updated_at', 'DESC']
-    ],
-  }).then(gatepass => {
-    console.log(gatepass)
-    gatepass = gatepass.map(gp => ({
-      ...gp.dataValues,
-      // ...gp.Office.dataValues,
-
-    }))
-    console.log('=====================================')
-
-    console.log(gatepass)
-    console.log('=====================================')
-
-
-    gatepass.forEach(item => {
-      QRCode.toDataURL(`http://10.4.100.241:3000/scanqrcode?package=1&gatepassId=${item.id}`, function (err, url) {
-        item.qrcode = url
-      })
-
-    })
-    // console.log(url)
-    // console.log(gatepass)
-    return res.json({ gatepass })
-
-  }).catch(err => {
-    console.log(err)
-  })
-
-
-})
 
 // 創建 gatepass 頁面
 app.get('/gatepass/empty', (req, res) => {
@@ -504,17 +452,6 @@ app.get('/gatepass/edit', (req, res) => {
 })
 
 
-// 查詢單個 gatepass 資料
-app.post('/api/gatepass/get', (req, res) => {
-  console.log(req.body)
-  const gatepassId = req.body.gatepassId
-  console.log(gatepassId)
-  Gatepass.findByPk(gatepassId, { raw: true })
-    .then(gp => {
-      console.log(gp)
-      res.json({ message: 'ok', gatepass: gp })
-    })
-})
 
 // Asset 加入 gatepass & modify Asset status & create Transfer V3
 app.post('/api/qrcode/asset/to/transfer3', (req, res) => {
@@ -609,45 +546,6 @@ app.post('/api/qrcode/asset/to/transfer2', (req, res) => {
     })
 })
 
-// 創建空白 Gatepass & QR code
-app.post('/api/gatepass/empty', (req, res) => {
-  console.log(req.body)
-  console.log('收到創建 gatepass API post 請求')
-  Gatepass.create({
-    OfficeId: req.body.toOfficeId,
-    b_office_id: req.body.fromOfficeId,
-    username: '手機板產生GP測試'
-  }).then(gp => {
-
-    const qrcodeContent = `https://10.4.100.241:3000/scanqrcode?package=1&gatepassId=${gp.id}`
-    const qrcode = `./images/qrcode/gatepasses/${gp.id}.png`
-    // 針對 gatepass 產生專屬 QR code
-    QRCode.toFile(`./public/images/qrcode/gatepasses/${gp.id}.png`, qrcodeContent, {
-      color: {
-        dark: '#00F',  // Blue dots
-        light: '#0000' // Transparent background
-      }
-    }, function (err, success) {
-      if (err) throw err
-      console.log(success)
-    })
-
-    Gatepass.findByPk(gp.id)
-      .then(gatepassData => {
-        gatepassData.update({
-          qrcode
-        })
-        return res.json({ gatepass: gatepassData, message: `創建 gatepass 成功, gatepassId : ${gatepassData.id}` })
-      })
-      .catch(err => {
-        console.log(err)
-      })
-
-
-  }).catch(err => {
-    console.log(err)
-  })
-})
 
 // 掃描 QR code 入口
 app.get('/scanqrcode', (req, res) => {
@@ -993,52 +891,7 @@ app.post('/api/gatepass/package/received', (req, res) => {
 })
 
 
-app.get('/api/officeAssets', (req, res) => {
-  // define default data limit
-  const DEFAULT_LIMIT = 10
-  const officeId = Number(req.query.officeId)
-  const page = Number(req.query.page) || 1
-  const limit = Number(req.query.limit) || DEFAULT_LIMIT
-  const name = req.query.name
-  const offset = getOffset(limit, page)
-  console.log('傳送進來的 page : ')
-  console.log(page)
-  console.log('傳送進來的 limit : ')
-  console.log(limit)
-  console.log('傳送進來的 officeId : ')
-  console.log(officeId)
-  console.log('傳送進來的 name : ')
-  console.log(name)
-  Promise.all([
-    Asset.findAndCountAll({
-      raw: true,
-      nest: true,
-      include: [Category, Office],
-      where: {
-        ...officeId ? { officeId } : {},
-        ...name ? { name } : {}
-      },
-      order: [
-        ['updated_at', 'DESC']
-      ],
-      limit,
-      offset
-    }),
-    Category.findAll({ raw: true }),
-    Office.findAll({ raw: true })
-  ]).then(([assets, category, office]) => {
-    console.log(assets)
-    assets.rows.forEach(item => {
-      QRCode.toDataURL(`http://10.4.100.241:3000/editAssets/${item.id}`, function (err, url) {
-        item.qrcode = url
-      })
-    })
-    res.json({ assets: assets.rows, pagination: getPagination(limit, page, assets.count), category, office })
-  }).catch(err => {
-    console.log(err)
-  })
 
-})
 
 // render edit Asset page
 app.get('/editAssets/:id', (req, res) => {
