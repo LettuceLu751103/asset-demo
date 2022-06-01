@@ -43,11 +43,17 @@ app.use(session({
   resave: false,
   saveUninitialized: true
 }))
-
+app.use(passport.initialize()) // 增加這行，初始化 Passport
+app.use(passport.session()) // 增加這行，啟動 session 功能
 // 呼叫 Passport 函式並傳入 app，這條要寫在路由之前
 usePassport(app)
 
-
+app.use((req, res, next) => {
+  // 你可以在這裡 console.log(req.user) 等資訊來觀察
+  res.locals.isAuthenticated = req.isAuthenticated()
+  res.locals.user = req.user
+  next()
+})
 
 app.use(express.urlencoded({ extended: true }))
 app.use(methodOverride('_method'))

@@ -14,10 +14,15 @@ const Gatepass = db.Gatepass
 const Status = db.Status
 const User = db.User
 const Userstatus = db.Userstatus
+const userController = require('../../controllers/apis/user-controller')
+const { authenticated, authenticatedAdmin } = require('../../middleware/api-auth') // 新增這裡
 const passport = require('passport')
+const jwt = require('jsonwebtoken')
 // QR code
 var QRCode = require('qrcode')
-
+if (process.env.NODE_ENV !== 'production') {
+    require('dotenv').config()
+}
 
 
 router.get('/gatepassData/:id', (req, res) => {
@@ -812,18 +817,9 @@ router.post('/users/register', (req, res) => {
 })
 
 // 使用者驗證 user API - 未完成
-router.post('/users/login', passport.authenticate('local', {
-    successRedirect: '/',
-    failureRedirect: '/users/login'
-}), (req, res) => {
-    console.log(req.body)
-})
+router.post('/users/login', passport.authenticate('local', { session: false }), userController.login)
 
-// 使用者登出 user API - 未完成
-router.get('/users/logout', (req, res) => {
-    req.logout()
-    res.redirect('/users/login')
-})
+
 
 // 獲取使用者狀態列表 API
 router.get('/userstatus', (req, res) => {
