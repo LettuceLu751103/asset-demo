@@ -819,7 +819,7 @@ router.post('/users/login', passport.authenticate('local', {
     console.log(req.body)
 })
 
-// 使用者登出 user API
+// 使用者登出 user API - 未完成
 router.get('/users/logout', (req, res) => {
     req.logout()
     res.redirect('/users/login')
