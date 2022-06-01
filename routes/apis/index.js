@@ -755,9 +755,9 @@ router.get('/users/:id', (req, res) => {
 })
 
 // 修改個別使用者訊息 user API - 未完成
-router.post('/users/:id/edit', (req, res) => {
+router.post('/users/edit', (req, res) => {
     console.log('呼叫修改個別使用者訊息 user API')
-    User.findByPk(req.params.id)
+    User.findByPk(req.body.id)
         .then(user => {
             console.log(user)
             res.json({ status: 'ok', message: '成功獲得個別使用者列表', data: user })
@@ -767,7 +767,7 @@ router.post('/users/:id/edit', (req, res) => {
         })
 })
 
-// 獲取所有使用者訊息 users API
+// 獲取所有使用者訊息 users API - 完成
 router.get('/users', (req, res) => {
     console.log('呼叫獲取所有使用者訊息 users API')
     User.findAll({
@@ -785,19 +785,17 @@ router.get('/users', (req, res) => {
         })
 })
 
-// 註冊使用者 user API
+// 註冊使用者 user API - 完成
 router.post('/users/register', (req, res) => {
     let { name, password, enabled, userstatus_id } = req.body
     User.findAll({ where: { name } })
         .then(user => {
-            console.log(user.length)
             if (user.length > 0) {
-                return res.json({ status: 'error', message: `${name} 已經註冊過`, data: user })
+                return res.json({ status: 'error', message: `${name} 已經註冊過, 使用者建立失敗`, data: user })
             }
             password = password.trim()
-            console.log('密碼長度: ' + password.length)
             if (password.length < 8) {
-                return res.json({ status: 'error', message: `密碼小於8碼` })
+                return res.json({ status: 'error', message: `密碼小於8碼, 使用者建立失敗` })
             }
             return bcrypt
                 .genSalt(10) // 產生「鹽」，並設定複雜度係數為 10

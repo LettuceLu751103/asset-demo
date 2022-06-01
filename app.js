@@ -7,6 +7,7 @@ const { getOffset, getPagination } = require('./helpers/pagination-helper')
 const { genQR } = require('./helpers/generateQRCode')
 const methodOverride = require('method-override')
 const bcrypt = require('bcryptjs')
+const session = require('express-session')
 const app = express()
 const PORT = 3000
 const { Op, NUMBER } = require("sequelize");
@@ -34,7 +35,11 @@ const corsOptions = {
   allowedHeaders: ['Content-Type', 'Authorization'],
 };
 app.use(cors(corsOptions));
-
+app.use(session({
+  secret: 'mxnoc.local',
+  resave: false,
+  saveUninitialized: true
+}))
 
 
 
