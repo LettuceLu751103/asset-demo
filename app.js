@@ -1,4 +1,5 @@
 const express = require('express')
+var cors = require('cors');
 const exphbs = require('express-handlebars')
 // load some helpers
 const handlebarsHelpers = require('./helpers/handlebars-helpers')
@@ -26,7 +27,13 @@ const multer = require('multer')
 const upload = multer({ dest: 'temp/' })
 app.use('/upload', express.static(__dirname + '/upload'))
 app.use(express.static('public'))
-
+// 設定允許跨 site 訪問 API
+const corsOptions = {
+  origin: "*",
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
+app.use(cors(corsOptions));
 
 
 
@@ -423,7 +430,7 @@ app.post('/gatepass/empty', (req, res) => {
   })
 })
 
-// 
+// 渲染添加掃描資產到 gatepass 的頁面
 app.get('/gatepass/edit', (req, res) => {
   console.log(req.query)
   const gatepassId = req.query.id
@@ -547,7 +554,7 @@ app.post('/api/qrcode/asset/to/transfer2', (req, res) => {
 })
 
 
-// 掃描 QR code 入口
+// 渲染掃描 QR code 入口
 app.get('/scanqrcode', (req, res) => {
   console.log(req.query)
   const assetId = req.query.assetId | 0
@@ -651,7 +658,7 @@ app.post('/api/qrcode/asset/to/transfer', (req, res) => {
 
 
 
-// 確認單個 Asset 是否已在移轉中 API
+// 確認單個 Asset 是否已在移轉中 API - 移轉完成
 app.post('/api/qrcode/asset/transfer', (req, res) => {
   console.log('確認資產是否已在移轉中?')
   console.log(req.body)
@@ -673,7 +680,7 @@ app.post('/api/qrcode/asset/transfer', (req, res) => {
     })
 })
 
-// 單個 Asset 查詢 API
+// 單個 Asset 查詢 API - 移轉完成
 app.post('/api/qrcode/asset', (req, res) => {
   console.log('收到 qrcode 查詢單個資產')
   const assetId = req.body.assetId
@@ -694,7 +701,7 @@ app.post('/api/qrcode/asset', (req, res) => {
   })
 })
 
-// 單個 Asset 修改 API
+// 單個 Asset 修改 API 
 app.post('/api/qrcode/asset/edit', upload.single('image'), (req, res) => {
   console.log('收到 qrcode 修改單個資產')
   console.log(req.body)
@@ -778,7 +785,7 @@ app.post('/api/qrcode/office', (req, res) => {
     })
 })
 
-// qrcode Status 查詢 API
+// qrcode Status 查詢 API - 已有對應的在新路徑
 app.post('/api/qrcode/status', (req, res) => {
   Status.findAll({ raw: true })
     .then(statuses => {
@@ -928,6 +935,7 @@ app.put('/editAsset/:id', (req, res) => {
 
 })
 
+
 app.get('/createOfficeAsset', (req, res) => {
   Promise.all([
     Category.findAll({
@@ -1074,7 +1082,7 @@ app.get('/createOffice', (req, res) => {
   res.render('createOffice')
 })
 
-// create office page
+// create office page - 已移轉
 app.post('/createOffice', (req, res) => {
   const { name, Description } = req.body
 
@@ -1106,7 +1114,7 @@ app.post('/createOffice', (req, res) => {
     })
 })
 
-// delete office
+// delete office - 未完成, 會有跟 Asset, gatepass 進行關聯, 要一起刪除
 app.delete('/deleteOffice/:id', (req, res) => {
   console.log(req.params)
   return Office.findByPk(req.params.id)
@@ -1118,23 +1126,22 @@ app.delete('/deleteOffice/:id', (req, res) => {
     .catch(err => next(err))
 })
 
-// update office
+// 查詢特定辦公室資料　- 已移轉
 app.get('/editOffices/:id', (req, res) => {
   console.log(req.params.id)
   Office.findByPk(req.params.id, {
     raw: true
   })
     .then(office => {
-
       console.log(office)
       if (!office) throw new Error("office didn't exist!")
       res.render('editOffice', { office })
     })
     .catch(err => next(err))
-
 })
 
-// edit specific office page
+// edit specific office page 
+
 app.put('/editOffices/:id', (req, res) => {
 
   Office.findByPk(req.params.id)
@@ -1153,7 +1160,7 @@ app.put('/editOffices/:id', (req, res) => {
 })
 
 
-// 掃描 qrcode , 單個資產到貨 API
+// 掃描 qrcode , 單個資產到貨 API - 已移轉
 app.post('/api/qrcode/asset/received', (req, res) => {
   // console.log(req.body.content.hostname)
   console.log(req.body)
