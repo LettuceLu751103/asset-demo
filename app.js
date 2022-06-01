@@ -10,6 +10,7 @@ const bcrypt = require('bcryptjs')
 const session = require('express-session')
 // 載入設定檔，要寫在 express-session 以後
 const usePassport = require('./config/passport')
+const passport = require('passport')
 const app = express()
 const PORT = 3000
 const { Op, NUMBER } = require("sequelize");
@@ -1167,6 +1168,27 @@ app.put('/editOffices/:id', (req, res) => {
     })
     .catch(err => next(err))
 
+})
+
+// 使用者登入頁面 請求
+app.get('/users/login', (req, res) => {
+  console.log('收到登入頁面請求')
+  res.render('login')
+})
+
+// 使用者登出 user 
+app.get('/users/logout', (req, res) => {
+  req.logout()
+  res.redirect('/users/login')
+})
+
+
+// 使用者驗證 user 請求
+app.post('/users/login', passport.authenticate('local', {
+  successRedirect: '/',
+  failureRedirect: '/users/login'
+}), (req, res) => {
+  console.log(req.body)
 })
 
 

@@ -1,7 +1,7 @@
 const passport = require('passport')
 const LocalStrategy = require('passport-local').Strategy
-
-const User = require('../models/user')
+const db = require('../models')
+const User = db.User
 
 
 module.exports = app => {
@@ -10,7 +10,7 @@ module.exports = app => {
     app.use(passport.session())
     // 設定本地登入策略
     passport.use(new LocalStrategy({ usernameField: 'name' }, (name, password, done) => {
-        User.findOne({ name })
+        User.findOne({ where: { name: name } })
             .then(user => {
                 if (!user) {
                     return done(null, false, { message: 'That Name is not registered!' })
@@ -28,8 +28,7 @@ module.exports = app => {
         done(null, user.id)
     })
     passport.deserializeUser((id, done) => {
-        User.findById(id)
-            .lean()
+        User.findByPk(id)
             .then(user => done(null, user))
             .catch(err => done(err, null))
     })

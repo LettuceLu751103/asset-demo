@@ -811,11 +811,19 @@ router.post('/users/register', (req, res) => {
         })
 })
 
-// 使用者驗證 user API 
+// 使用者驗證 user API - 未完成
 router.post('/users/login', passport.authenticate('local', {
     successRedirect: '/',
     failureRedirect: '/users/login'
-}))
+}), (req, res) => {
+    console.log(req.body)
+})
+
+// 使用者登出 user API
+router.get('/users/logout', (req, res) => {
+    req.logout()
+    res.redirect('/users/login')
+})
 
 // 獲取使用者狀態列表 API
 router.get('/userstatus', (req, res) => {
@@ -823,7 +831,6 @@ router.get('/userstatus', (req, res) => {
         raw: true,
     })
         .then(userstatus => {
-
             res.json({ status: 'ok', message: '成功獲得使用者狀態列表', data: userstatus })
         })
         .catch(err => {
