@@ -14,7 +14,7 @@ const Gatepass = db.Gatepass
 const Status = db.Status
 const User = db.User
 const Userstatus = db.Userstatus
-
+const passport = require('passport')
 // QR code
 var QRCode = require('qrcode')
 
@@ -811,7 +811,11 @@ router.post('/users/register', (req, res) => {
         })
 })
 
-
+// 使用者驗證 user API 
+router.post('/users/login', passport.authenticate('local', {
+    successRedirect: '/',
+    failureRedirect: '/users/login'
+}))
 
 // 獲取使用者狀態列表 API
 router.get('/userstatus', (req, res) => {
