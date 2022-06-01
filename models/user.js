@@ -4,7 +4,7 @@ module.exports = (sequelize, DataTypes) => {
     name: DataTypes.STRING,
     password: DataTypes.STRING,
     enabled: DataTypes.INTEGER,
-    userstatus_id: DataTypes.INTEGER
+    userstatus_id: DataTypes.INTEGER,
   }, {
     underscored: true,
     modelName: 'User',
@@ -12,7 +12,7 @@ module.exports = (sequelize, DataTypes) => {
   User.associate = function (models) {
     // associations can be defined here
     console.log(models.Userstatus)
-    User.belongsTo(models.Userstatus, { foreignKey: 'userstatusId' })
+    User.belongsTo(models.Userstatus, { foreignKey: 'UserstatusId' })
   };
   return User;
 };

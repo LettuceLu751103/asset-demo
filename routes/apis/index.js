@@ -1,6 +1,7 @@
 
 const express = require('express')
 const router = express.Router()
+const bcrypt = require('bcryptjs')
 const multer = require('multer')
 const upload = multer({ dest: 'temp/' })
 const { getOffset, getPagination } = require('../../helpers/pagination-helper')
@@ -740,12 +741,88 @@ router.get('/status', (req, res) => {
         })
 })
 
-// 查詢所有使用者訊息 users API
+// 獲取個別使用者訊息 user API
+router.get('/users/:id', (req, res) => {
+    console.log('呼叫獲取個別使用者訊息 user API')
+    User.findByPk(req.params.id)
+        .then(user => {
+            console.log(user)
+            res.json({ status: 'ok', message: '成功獲得個別使用者列表', data: user })
+        })
+        .catch(err => {
+            console.log(err)
+        })
+})
+
+// 修改個別使用者訊息 user API - 未完成
+router.post('/users/:id/edit', (req, res) => {
+    console.log('呼叫修改個別使用者訊息 user API')
+    User.findByPk(req.params.id)
+        .then(user => {
+            console.log(user)
+            res.json({ status: 'ok', message: '成功獲得個別使用者列表', data: user })
+        })
+        .catch(err => {
+            console.log(err)
+        })
+})
+
+// 獲取所有使用者訊息 users API
 router.get('/users', (req, res) => {
-    User.findAll({ raw: true })
+    console.log('呼叫獲取所有使用者訊息 users API')
+    User.findAll({
+        raw: true,
+        nest: true,
+        include: [
+            { model: Userstatus }
+        ]
+    })
         .then(users => {
-            console.log(users)
-            res.json({ status: 'ok', message: '成功獲得使用者列表', users })
+            res.json({ status: 'ok', message: '成功獲得使用者列表', data: users })
+        })
+        .catch(err => {
+            console.log(err)
+        })
+})
+
+// 註冊使用者 user API
+router.post('/users/register', (req, res) => {
+    let { name, password, enabled, userstatus_id } = req.body
+    User.findAll({ where: { name } })
+        .then(user => {
+            console.log(user.length)
+            if (user.length > 0) {
+                return res.json({ status: 'error', message: `${name} 已經註冊過`, data: user })
+            }
+            password = password.trim()
+            console.log('密碼長度: ' + password.length)
+            if (password.length < 8) {
+                return res.json({ status: 'error', message: `密碼小於8碼` })
+            }
+            return bcrypt
+                .genSalt(10) // 產生「鹽」，並設定複雜度係數為 10
+                .then(salt => bcrypt.hash(password, salt)) // 為使用者密碼「加鹽」，產生雜湊值
+                .then(hash => User.create({
+                    name,
+                    enabled,
+                    userstatus_id,
+                    password: hash // 用雜湊值取代原本的使用者密碼
+                }))
+                .then((createdUser) => res.json({ status: 'ok', message: '成功建立使用者', data: createdUser }))
+                .catch(err => console.log(err))
+        })
+})
+
+
+
+// 獲取使用者狀態列表 API
+router.get('/userstatus', (req, res) => {
+    Userstatus.findAll({
+        raw: true,
+    })
+        .then(userstatus => {
+
+            res.json({ status: 'ok', message: '成功獲得使用者狀態列表', data: userstatus })
         })
         .catch(err => {
             console.log(err)
