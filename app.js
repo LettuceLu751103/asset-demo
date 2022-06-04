@@ -6,6 +6,7 @@ const handlebarsHelpers = require('./helpers/handlebars-helpers')
 const { getOffset, getPagination } = require('./helpers/pagination-helper')
 const { genQR } = require('./helpers/generateQRCode')
 const methodOverride = require('method-override')
+var logger = require('morgan');
 const bcrypt = require('bcryptjs')
 const session = require('express-session')
 // 載入設定檔，要寫在 express-session 以後
@@ -29,6 +30,7 @@ app.engine('hbs', exphbs({ extname: '.hbs', helpers: handlebarsHelpers }))
 // 圖片相關
 const multer = require('multer')
 const upload = multer({ dest: 'temp/' })
+app.use(logger('combined'));
 app.use('/upload', express.static(__dirname + '/upload'))
 app.use(express.static('public'))
 // 設定允許跨 site 訪問 API

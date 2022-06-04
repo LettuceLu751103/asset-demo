@@ -128,32 +128,40 @@ router.get('/offices', (req, res) => {
 // create office API
 router.post('/offices/create', (req, res) => {
     const { name, Description } = req.body
-
-    Office.findOne({
-        where: {
-            name: req.body.name
-        }
-    })
-        .then(val => {
-            if (val) {  // 如果資料庫找到, 不新增辦公室
-                res.json({ status: 200, data: 'Failed create office' })
-            } else {  // 如果資料庫沒找到, 新增辦公室
-                return Office.create({
-                    name,
-                    Description
-                })
-                    .then(office => {
-                        // req.flash('success_messages', 'restaurant was successfully created') // 在畫面顯示成功提示
-                        res.json({ status: 200, data: 'Succeed create office' })
-                    })
-                    .catch(err => {
-                        console.log(err)
-                    })
+    console.log(' ===== name ===== ')
+    console.log(typeof name)
+    console.log(' ===== Description ===== ')
+    console.log(typeof Description)
+    if (name) {
+        Office.findOne({
+            where: {
+                name: req.body.name
             }
         })
-        .catch(err => {
-            console.log(err)
-        })
+            .then(val => {
+                if (val) {  // 如果資料庫找到, 不新增辦公室
+                    res.json({ status: 'error', data: '資料庫已有相同 name 的辦公室' })
+                } else {  // 如果資料庫沒找到, 新增辦公室
+                    return Office.create({
+                        name,
+                        Description
+                    })
+                        .then(office => {
+                            // req.flash('success_messages', 'restaurant was successfully created') // 在畫面顯示成功提示
+                            res.json({ status: 'ok', data: `成功創建辦公室 ${office.name}` })
+                        })
+                        .catch(err => {
+                            console.log(err)
+                        })
+                }
+            })
+            .catch(err => {
+                console.log(err)
+            })
+    } else {
+        res.json({ status: 'error', data: '辦公室 name 異常' })
+    }
+
 })
 
 // 獲取特定 offices 資料 API
@@ -734,7 +742,7 @@ router.post('/gatepass/get', (req, res) => {
 })
 
 
-// 查詢資產所有狀態訊息 Status API
+// 查詢資產所有狀態訊息 Status API - 完成
 router.get('/status', (req, res) => {
     Status.findAll({ raw: true })
         .then(statuses => {
@@ -746,7 +754,7 @@ router.get('/status', (req, res) => {
         })
 })
 
-// 獲取個別使用者訊息 user API
+// 獲取個別使用者訊息 user API - 完成
 router.get('/users/:id', (req, res) => {
     console.log('呼叫獲取個別使用者訊息 user API')
     User.findByPk(req.params.id)
@@ -759,13 +767,32 @@ router.get('/users/:id', (req, res) => {
         })
 })
 
-// 修改個別使用者訊息 user API - 未完成
+// 修改個別使用者訊息 user API - 完成
 router.post('/users/edit', (req, res) => {
     console.log('呼叫修改個別使用者訊息 user API')
-    User.findByPk(req.body.id)
+    const { id, name, password, enabled, userstatus_id } = req.body
+    User.findByPk(id)
         .then(user => {
-            console.log(user)
-            res.json({ status: 'ok', message: '成功獲得個別使用者列表', data: user })
+            // console.log(user)
+            if (user) {
+                console.log('有找到使用者, 準備修改資料')
+                return bcrypt
+                    .genSalt(10)
+                    .then(salt => bcrypt.hash(password, salt))
+                    .then(hash => user.update({
+                        name,
+                        enabled,
+                        userstatus_id,
+                        password: hash
+                    }))
+                    .then((userUpdate) => {
+                        return res.json({ status: 'ok', message: '成功修改使用者資料', data: userUpdate })
+                    })
+
+            } else {
+                return res.json({ status: 'error', message: '沒有當前使用者, 無法進行修改' })
+            }
+
         })
         .catch(err => {
             console.log(err)
@@ -816,12 +843,12 @@ router.post('/users/register', (req, res) => {
         })
 })
 
-// 使用者驗證 user API - 未完成
+// 使用者驗證 user API - 完成
 router.post('/users/login', passport.authenticate('local', { session: false }), userController.login)
 
 
 
-// 獲取使用者狀態列表 API
+// 獲取使用者狀態列表 API - 完成
 router.get('/userstatus', (req, res) => {
     Userstatus.findAll({
         raw: true,
