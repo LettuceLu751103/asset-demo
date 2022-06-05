@@ -236,63 +236,76 @@ router.get('/officeAssets/:id', (req, res) => {
     })
 })
 
-// 修改特定 officeAssets 資產 API - 未完成
+// 修改特定 officeAssets 資產 API - 完成
 router.post('/officeAssets/edit', upload.single('image'), (req, res) => {
-    console.log('收到 qrcode 修改單個資產')
+    console.log('======= 呼叫修改資產 officeAssets API =======')
     console.log(req.body)
-    const assetId = req.body.assetId
-    console.log(assetId)
-
+    console.log(req.file)
+    console.log('======= 呼叫修改資產 officeAssets API =======')
+    const assetId = Number(req.body.assetId)
     const { file } = req
-    const { name, Vendor, Model, Quantity, Description } = req.body
-    const categoryId = req.body.category_id
-    const officeId = req.body.office_id
-    const statusId = req.body.status_id
-    if (file) {
-        console.log('有收到圖片要另外處理')
-        fs.readFile(file.path, (err, data) => {
-            if (err) console.log('Error: ', err)
-            console.log(file)
-            fs.writeFile(`upload/${file.originalname}`, data, () => {
-                return Asset.findByPk(assetId)
-                    .then(asset => {
-                        return asset.update({
-                            statusId,
-                            categoryId,
-                            name,
-                            Vendor,
-                            Model,
-                            Quantity,
-                            officeId,
-                            Description,
-                            image: file ? `/upload/${file.originalname}` : null
-                        }).then(asset => {
-                            res.redirect(`/scanqrcode?package=0&assetId=${assetId}`)
+    const { name, Vendor, Model, Description, categoryId, officeId, statusId } = req.body
+
+    if (assetId && name && Vendor && Model && Description && categoryId && officeId && statusId) {
+        if (file) {
+            console.log('有收到圖片要另外處理')
+            fs.readFile(file.path, (err, data) => {
+                if (err) console.log('Error: ', err)
+                console.log(file)
+                fs.writeFile(`upload/${file.originalname}`, data, () => {
+                    return Asset.findByPk(assetId)
+                        .then(asset => {
+                            return asset.update({
+                                statusId,
+                                categoryId,
+                                name,
+                                Vendor,
+                                Model,
+                                officeId,
+                                Description,
+                                image: file ? `/upload/${file.originalname}` : null
+                            }).then(asset => {
+                                console.log('==== 更改完的資料 ====')
+                                console.log(assetId)
+                                console.log(file.originalname)
+                                fs.renameSync(`./upload/${file.originalname}`, `./upload/${assetId}-${file.originalname
+                                    }`, function (err) {
+                                        if (err) throw err;
+                                        console.log('File Renamed.');
+                                    });
+                                asset.update({
+                                    image: file ? `/upload/${assetId}-${file.originalname
+                                        }` : null
+                                })
+                                console.log('==== 更改完的資料 ====')
+                                res.json({ status: 'ok', message: '成功修改資產資料, 使用新的圖片', data: asset })
+                            })
                         })
-                    })
-            })
-        })
-    } else {
-        console.log('沒有收到圖片, 用舊有的圖片, 修改資料')
-        Asset.findByPk(assetId)
-            .then(asset => {
-                return asset.update({
-                    name,
-                    Vendor,
-                    Model,
-                    Quantity,
-                    Description,
-                    categoryId: categoryId,
-                    status_id: statusId,
-                    office_id: officeId
                 })
             })
-            .then(() => {
-                res.redirect(`/scanqrcode?package=0&assetId=${assetId}`)
-            })
-            .catch(err => {
-                console.log(err)
-            })
+        } else {
+            console.log('沒有收到圖片, 用舊有的圖片, 修改資料')
+            return Asset.findByPk(assetId)
+                .then(asset => {
+                    return asset.update({
+                        name,
+                        Vendor,
+                        Model,
+                        Description,
+                        categoryId: categoryId,
+                        status_id: statusId,
+                        office_id: officeId
+                    })
+                })
+                .then((asset) => {
+                    res.json({ status: 'ok', message: '成功修改資產資料, 使用原先的圖片', data: asset })
+                })
+                .catch(err => {
+                    console.log(err)
+                })
+        }
+    } else {
+        res.json({ status: 'error', message: '資料不齊全, 請重新發送', data: req.body })
     }
 })
 
@@ -319,7 +332,7 @@ router.get('/officeAssets', (req, res) => {
         Asset.findAndCountAll({
             raw: true,
             nest: true,
-            include: [Category, Office],
+            include: [Category, Office, Status],
             where: {
                 ...officeId ? { officeId } : {},
                 ...name ? { name } : {},
@@ -378,6 +391,13 @@ router.post('/officeAssets/create', upload.single('image'), (req, res) => {
                     console.log('==== 產生 asset qrcode 並存入 DB ====')
 
                     const assetId = asset.dataValues.id
+                    console.log('assetId: ' + assetId)
+                    console.log('file.originalname: ' + file.originalname)
+                    const newImageName = assetId + '-' + file.originalname
+                    fs.renameSync(`./upload/${file.originalname}`, `./upload/${newImageName}`, function (err) {
+                        if (err) throw err;
+                        console.log('File Renamed.');
+                    });
                     const qrcodeContent = `https://10.4.100.241:3000/scanqrcode?package=0&assetId=${assetId}`
                     const qrcode = `./images/qrcode/assets/${assetId}.png`
                     // 針對 asset 產生專屬 QR code
@@ -394,7 +414,8 @@ router.post('/officeAssets/create', upload.single('image'), (req, res) => {
                     Asset.findByPk(assetId)
                         .then(asset => {
                             return asset.update({
-                                qrcode
+                                qrcode,
+                                image: file ? `/upload/${newImageName}` : null
                             })
                         })
                         .catch(err => {
