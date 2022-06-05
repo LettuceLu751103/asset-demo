@@ -4,6 +4,7 @@ const router = express.Router()
 const bcrypt = require('bcryptjs')
 const multer = require('multer')
 const upload = multer({ dest: 'temp/' })
+const fs = require('fs')
 const { getOffset, getPagination } = require('../../helpers/pagination-helper')
 // connect to db
 const db = require('../../models')
@@ -128,10 +129,11 @@ router.get('/offices', (req, res) => {
 // create office API
 router.post('/offices/create', (req, res) => {
     const { name, Description } = req.body
-    console.log(' ===== name ===== ')
-    console.log(typeof name)
-    console.log(' ===== Description ===== ')
-    console.log(typeof Description)
+    console.log(req.body)
+    console.log(' ===== 呼叫創建辦公室 API ===== ')
+    console.log('name: ' + name)
+    console.log('Description: ' + Description)
+    console.log(' ===== 呼叫創建辦公室 API ===== ')
     if (name) {
         Office.findOne({
             where: {
@@ -221,7 +223,7 @@ router.get('/officeAssets/:id', (req, res) => {
             Status
         ]
     }).then(asset => {
-        console.log(asset)
+        console.log(asset.toJSON())
         if (asset) {
             message = `有查到資產資料`
         } else {
@@ -345,13 +347,18 @@ router.get('/officeAssets', (req, res) => {
 
 })
 
-// 創建新的 officeAssets 資產 API - 未完成
+// 創建新的 officeAssets 資產 API - 完成
 router.post('/officeAssets/create', upload.single('image'), (req, res) => {
+    console.log('======= 呼叫創建新資產 officeAssets API =======')
+    console.log(req.body)
+    console.log(req.file)
+    console.log('======= 呼叫創建新資產 officeAssets API =======')
     const { file } = req
-    const { name, Vendor, Model, Quantity, Description } = req.body
-    const categoryId = req.body.category_id
-    const officeId = req.body.office_id
-    const statusId = req.body.status_id
+    const { name, Vendor, Model, Description } = req.body
+    const Quantity = 1
+    const categoryId = req.body.categoryId
+    const officeId = req.body.officeId
+    const statusId = req.body.statusId
     if (file) {
         console.log('傳入的檔案有圖片, 需要進行檔案處理')
         fs.readFile(file.path, (err, data) => {
@@ -369,7 +376,7 @@ router.post('/officeAssets/create', upload.single('image'), (req, res) => {
                     image: file ? `/upload/${file.originalname}` : null
                 }).then((asset) => {
                     console.log('==== 產生 asset qrcode 並存入 DB ====')
-                    console.log(asset)
+
                     const assetId = asset.dataValues.id
                     const qrcodeContent = `https://10.4.100.241:3000/scanqrcode?package=0&assetId=${assetId}`
                     const qrcode = `./images/qrcode/assets/${assetId}.png`
@@ -381,7 +388,7 @@ router.post('/officeAssets/create', upload.single('image'), (req, res) => {
                         }
                     }, function (err, success) {
                         if (err) throw err
-                        console.log(success)
+                        // console.log(success)
                     })
                     // 將 asset qrcode path 存入 DB
                     Asset.findByPk(assetId)
@@ -395,7 +402,7 @@ router.post('/officeAssets/create', upload.single('image'), (req, res) => {
                         })
                     console.log('==== 產生 asset qrcode 並存入 DB ====')
                     // req.flash('success_messages', 'restaurant was successfully created')
-                    res.redirect('/officeAssets')
+                    res.json({ status: 'ok', message: '新增有圖片的資產, 成功創建', data: asset })
                 })
             })
         })
@@ -439,7 +446,7 @@ router.post('/officeAssets/create', upload.single('image'), (req, res) => {
                     console.log(err)
                 })
             console.log('==== 產生 asset qrcode 並存入 DB ====')
-            res.redirect('/officeAssets')
+            res.json({ status: 'ok', message: '新增使用預設圖片的資產, 成功創建', data: asset })
         })
             .catch(err => {
                 console.log(err)

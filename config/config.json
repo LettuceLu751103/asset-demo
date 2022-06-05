@@ -4,7 +4,8 @@
     "password": "password",
     "database": "asset_db",
     "host": "127.0.0.1",
-    "dialect": "mysql"
+    "dialect": "mysql",
+    "timezone": "+08:00"
   },
   "test": {
     "username": "root",
@@ -12,7 +13,7 @@
     "database": "asset_db",
     "host": "127.0.0.1",
     "dialect": "mysql",
-    "operatorsAliases": false
+    "timezone": "+08:00"
   },
   "production": {
     "username": "root",
@@ -20,6 +21,6 @@
     "database": "asset_db",
     "host": "127.0.0.1",
     "dialect": "mysql",
-    "operatorsAliases": false
+    "timezone": "+08:00"
   }
 }
