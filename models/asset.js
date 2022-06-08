@@ -9,7 +9,7 @@ module.exports = (sequelize, DataTypes) => {
     qrcode: DataTypes.TEXT('long'),
     image: {
       type: DataTypes.STRING,
-      defaultValue: "https://ewr9gftwh9h.exactdn.com/wp-content/uploads/2018/01/Question-Mark.png?strip=all&lossy=1&resize=195%2C195",
+      defaultValue: "/upload/defaultImage.png",
     },
     status_id: DataTypes.INTEGER,
     office_id: DataTypes.INTEGER,
@@ -19,6 +19,7 @@ module.exports = (sequelize, DataTypes) => {
   });
   Asset.associate = function (models) {
     // associations can be defined here
+    Asset.belongsTo(models.Secondcategory, { foreignKey: 'secondcategoryId' })
     Asset.belongsTo(models.Category, { foreignKey: 'categoryId' })
     Asset.belongsTo(models.Office, { foreignKey: 'officeId' })
     Asset.belongsTo(models.Status, { foreignKey: 'statusId' })

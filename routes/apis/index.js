@@ -9,11 +9,13 @@ const { getOffset, getPagination } = require('../../helpers/pagination-helper')
 // connect to db
 const db = require('../../models')
 const Category = db.Category
+const Secondcategory = db.Secondcategory
 const Asset = db.Asset
 const Office = db.Office
 const Gatepass = db.Gatepass
 const Status = db.Status
 const User = db.User
+const Transfer = db.Transfer
 const Userstatus = db.Userstatus
 const userController = require('../../controllers/apis/user-controller')
 const { authenticated, authenticatedAdmin } = require('../../middleware/api-auth') // 新增這裡
@@ -212,39 +214,17 @@ router.post('/offices/edit', (req, res) => {
 })
 
 
-// 獲取特定 officeAssets 資產 API
-router.get('/officeAssets/:id', (req, res) => {
-    console.log('收到 qrcode 查詢單個資產')
-    const assetId = req.params.id
-    Asset.findByPk(assetId, {
-        include: [
-            Office,
-            Category,
-            Status
-        ]
-    }).then(asset => {
-        console.log(asset.toJSON())
-        if (asset) {
-            message = `有查到資產資料`
-        } else {
 
-            message = `沒有查到資產資料`
-        }
-        res.json({ status: 200, message: message, response: asset })
-    }).catch(err => {
-        console.log(err)
-    })
-})
 
 // 修改特定 officeAssets 資產 API - 完成
-router.post('/officeAssets/edit', upload.single('image'), (req, res) => {
+router.post('/officeAssets/update', upload.single('image'), (req, res) => {
     console.log('======= 呼叫修改資產 officeAssets API =======')
     console.log(req.body)
     console.log(req.file)
     console.log('======= 呼叫修改資產 officeAssets API =======')
     const assetId = Number(req.body.assetId)
     const { file } = req
-    const { name, Vendor, Model, Description, categoryId, officeId, statusId } = req.body
+    const { name, Vendor, Model, Description, categoryId, officeId, statusId, secondcategoryId } = req.body
 
     if (assetId && name && Vendor && Model && Description && categoryId && officeId && statusId) {
         if (file) {
@@ -258,6 +238,7 @@ router.post('/officeAssets/edit', upload.single('image'), (req, res) => {
                             return asset.update({
                                 statusId,
                                 categoryId,
+                                secondcategoryId,
                                 name,
                                 Vendor,
                                 Model,
@@ -293,6 +274,7 @@ router.post('/officeAssets/edit', upload.single('image'), (req, res) => {
                         Model,
                         Description,
                         categoryId: categoryId,
+                        secondcategoryId,
                         status_id: statusId,
                         office_id: officeId
                     })
@@ -307,6 +289,31 @@ router.post('/officeAssets/edit', upload.single('image'), (req, res) => {
     } else {
         res.json({ status: 'error', message: '資料不齊全, 請重新發送', data: req.body })
     }
+})
+
+// 獲取特定 officeAssets 資產 API
+router.get('/officeAssets/:id', (req, res) => {
+    console.log('收到 qrcode 查詢單個資產')
+    const assetId = req.params.id
+    Asset.findByPk(assetId, {
+        include: [
+            Office,
+            Category,
+            Status,
+            Secondcategory,
+        ]
+    }).then(asset => {
+        console.log(asset.toJSON())
+        if (asset) {
+            message = `有查到資產資料`
+        } else {
+
+            message = `沒有查到資產資料`
+        }
+        res.json({ status: 200, message: message, response: asset })
+    }).catch(err => {
+        console.log(err)
+    })
 })
 
 // 獲取所有 officeAssets 資產 API
@@ -332,7 +339,7 @@ router.get('/officeAssets', (req, res) => {
         Asset.findAndCountAll({
             raw: true,
             nest: true,
-            include: [Category, Office, Status],
+            include: [Category, Office, Status, Secondcategory],
             where: {
                 ...officeId ? { officeId } : {},
                 ...name ? { name } : {},
@@ -345,15 +352,16 @@ router.get('/officeAssets', (req, res) => {
             offset
         }),
         Category.findAll({ raw: true }),
-        Office.findAll({ raw: true })
-    ]).then(([assets, category, office]) => {
+        Office.findAll({ raw: true }),
+        Status.findAll({ raw: true }),
+    ]).then(([assets, category, office, status, secondcategory]) => {
         // console.log(assets)
         assets.rows.forEach(item => {
             QRCode.toDataURL(`http://10.4.100.241:3000/editAssets/${item.id}`, function (err, url) {
                 item.qrcode = url
             })
         })
-        res.json({ assets: assets.rows, pagination: getPagination(limit, page, assets.count), category, office })
+        res.json({ assets: assets.rows, pagination: getPagination(limit, page, assets.count), category, office, status, secondcategory })
     }).catch(err => {
         console.log(err)
     })
@@ -370,8 +378,10 @@ router.post('/officeAssets/create', upload.single('image'), (req, res) => {
     const { name, Vendor, Model, Description } = req.body
     const Quantity = 1
     const categoryId = req.body.categoryId
+    const secondcategoryId = req.body.secondcategoryId
     const officeId = req.body.officeId
     const statusId = req.body.statusId
+
     if (file) {
         console.log('傳入的檔案有圖片, 需要進行檔案處理')
         fs.readFile(file.path, (err, data) => {
@@ -380,6 +390,7 @@ router.post('/officeAssets/create', upload.single('image'), (req, res) => {
                 return Asset.create({
                     statusId,
                     categoryId,
+                    secondcategoryId,
                     name,
                     Vendor,
                     Model,
@@ -435,6 +446,7 @@ router.post('/officeAssets/create', upload.single('image'), (req, res) => {
         Asset.create({
             statusId,
             categoryId,
+            secondcategoryId,
             name,
             Vendor,
             Model,
@@ -889,7 +901,132 @@ router.get('/userstatus', (req, res) => {
         })
 })
 
+// 整包 gatepass 到貨 API
+router.post('/api/gatepass/received', (req, res) => {
+    console.log('收到整包 gatepass 到貨請求')
+    const { gatepassId } = req.body
+    console.log(gatepassId)
+    Promise.all([
+        Transfer.findAll(
+            {
+                raw: true,
+                nest: true,
+                where: {
+                    GatepassId: gatepassId
+                }
+            }),
+        Asset.findAll({
+            raw: true, nest: true
+        }),
+        Gatepass.findAll({
+            raw: true, nest: true
+        })
+    ])
+        .then(([transfer, assets, gatepass]) => {
+            // console.log(transfer)
+            const b = transfer.map(function (tf) {
+                const a = assets.find(at => (
+                    at.id === tf.AssetId
+                ))
+                return a
 
+            })
+            // 查到當前 gatepass 所有資產 b, 進入 Asset table 修改該資產狀態
+            // console.log(b)
+            // 修改 gatepass status = 1, 狀態移轉完成
+            Gatepass.findByPk(gatepassId)
+                .then(gp => {
+                    console.log('修改 => 移轉完成')
+                    return gp.update({
+                        status: 1
+                    })
+                })
+            // 修改 Transfer table 中個別資產移轉狀態為 已接收 received = 1, Asset table 中個別資產狀態為 閒置中 status_id = 1
+
+            b.forEach(asset => {
+                console.log(asset.id)
+                Promise.all([Transfer.findOne({ where: { AssetId: asset.id } }), Asset.findByPk(asset.id), Gatepass.findByPk(gatepassId, {})])
+                    .then(([transfer, asset, gatepass]) => {
+                        console.log('修改tf狀態')
+                        console.log(transfer.dataValues.received)
+                        transfer.update({
+                            received: 1
+                        })
+                        console.log('修改at狀態')
+                        console.log(gatepass.dataValues.OfficeId)
+                        asset.update({
+                            status_id: 1,
+                            office_id: gatepass.dataValues.OfficeId
+                        })
+
+                        gatepass.update({
+                            countquantity: gatepass.dataValues.countquantity - 1
+                        })
+                    })
+            })
+            res.json({ status: 200, message: '返回數據', response: b, gatepassStatus: 1 })
+        })
+})
+
+
+router.get('/secondcategories', (req, res) => {
+    console.log('請求獲取次類別資料')
+    Secondcategory.findAll({ raw: true, nest: true })
+        .then(secondcategory => {
+            if (secondcategory.length > 0) {
+                res.json({ status: 'ok', message: '成功抓取所有次類別資料', data: secondcategory })
+            } else {
+                res.json({ status: 'error', message: '當前次類別沒有資料', data: secondcategory })
+            }
+        })
+        .catch(err => {
+            console.log(err)
+        })
+})
+
+router.get('/secondcategories/:id', (req, res) => {
+    console.log('請求獲取次類別資料')
+    const id = req.params.id
+    Secondcategory.findByPk(id, { raw: true, nest: true })
+        .then(secondcategory => {
+            console.log(secondcategory)
+            if (secondcategory) {
+                res.json({ status: 'ok', message: '成功獲取次類別資料', data: secondcategory })
+            } else {
+                res.json({ status: 'error', message: '資料庫查詢不到該id之次類別名稱' })
+            }
+        })
+        .catch(err => {
+            console.log(err)
+        })
+})
+
+router.post('/secondcategories', (req, res) => {
+    const { name, Description } = req.body
+    if (name) {
+        Secondcategory.findOne({ where: { name } })
+            .then(secondcategory => {
+                if (secondcategory) {
+                    res.json({ status: 'error', message: '資料庫已有相同次類別名稱' })
+                } else {
+                    return Secondcategory.create({
+                        name,
+                        Description
+                    }).then(secondcategory => {
+                        res.json({ status: 'ok', message: '成功寫入次類別資料', data: secondcategory })
+                    })
+                }
+            })
+            .catch(err => {
+                console.log(err)
+            })
+
+    } else {
+        console.log('收到寫入次類別資料不齊全')
+        res.json({ status: 'error', message: '寫入次類別資料不齊全' })
+    }
+
+})
 
 
 module.exports = router
