@@ -19,8 +19,8 @@ const { Op, NUMBER } = require("sequelize");
 const https = require('https')
 // 引入檔案處理
 const fs = require('fs')
-const privatekey = fs.readFileSync('./public/ssl/server_no_passwd.key', 'utf8')
-const certificate = fs.readFileSync('./public/ssl/server.csr', 'utf8')
+const privatekey = fs.readFileSync('./public/ssl/private.key', 'utf8')
+const certificate = fs.readFileSync('./public/ssl/certificate.crt', 'utf8')
 // https server options
 const options = { key: privatekey, cert: certificate }
 
@@ -33,6 +33,7 @@ const upload = multer({ dest: 'temp/' })
 app.use(logger('combined'));
 app.use('/upload', express.static(__dirname + '/upload'))
 app.use(express.static('public'))
+app.use(express.static('node_modules'))
 // 設定允許跨 site 訪問 API
 const corsOptions = {
   origin: "*",
@@ -68,6 +69,10 @@ const Office = db.Office
 const Status = db.Status
 const Gatepass = db.Gatepass
 const Transfer = db.Transfer
+const Shiftpost = db.Shiftpost
+const Shift = db.Shift
+const Image = db.Image
+
 
 // QR code
 var QRCode = require('qrcode')
@@ -1282,6 +1287,136 @@ app.post('/api/qrcode/asset/received', (req, res) => {
 
 })
 
+
+
+app.get('/shiftpost', (req, res) => {
+  Shiftpost.findAll({
+    raw: true,
+    nest: true,
+    include: [Shift],
+    attributes: ['id', 'posttitle', 'poster', 'createdAt', 'updatedAt', 'isdeleted'],
+    order: [['createdAt', 'DESC'],]
+  })
+    .then(shiftpost => {
+      console.log(shiftpost)
+      res.render('shiftpostview', { shiftpost })
+    })
+    .catch(err => {
+      console.log(err)
+    })
+})
+
+app.get('/shiftpost/create', (req, res) => {
+  Shift.findAll({ raw: true, nest: true })
+    .then(shift => {
+      // console.log(shift)
+      res.render('shiftpost', { shift })
+    })
+    .catch(err => {
+      console.log(err)
+    })
+
+})
+
+app.post('/shiftpost/images/upload', upload.single('image'), (req, res) => {
+
+
+  const { file } = req
+
+  if (file) {
+    console.log('prepare to save the img.')
+    fs.readFile(file.path, (err, data) => {
+      if (err) console.log('Error: ', err)
+      const filename = Date.now() + '-' + file.originalname
+      const filepath = `/images/shiftpost/` + filename
+      const fileencoding = file.encoding
+      const filemimetype = file.mimetype
+      const filesize = file.size
+
+      fs.writeFile(`public/` + filepath, data, () => {
+        return Image.create({
+          filename,
+          filepath,
+          filesize,
+          fileencoding,
+          filemimetype
+        }).then(image => {
+          return res.json({ url: image.filepath })
+        })
+      })
+    })
+    console.log(req.file)
+    console.log(Date.now())
+
+  }
+
+})
+
+app.get('/shiftpost/:id', (req, res) => {
+  const id = req.params.id
+  Shiftpost.findByPk(id, { nest: true, raw: true, include: [Shift] })
+    .then(shiftpost => {
+      console.log(shiftpost)
+      res.render('shiftpostviewdetail', { shiftpost })
+    })
+    .catch(err => {
+      console.log(err)
+    })
+})
+
+app.get('/shiftpost/:id/update', (req, res) => {
+  const id = req.params.id
+  Promise.all([Shiftpost.findByPk(id, { nest: true, raw: true, include: [Shift] }), Shift.findAll({ nest: true, raw: true })])
+    .then(([shiftpost, shift]) => {
+      console.log(shiftpost)
+      res.render('shiftpostupdate', { shiftpost, shift })
+    })
+    .catch(err => {
+      console.log(err)
+    })
+})
+
+app.post('/shiftpost/:id/update', upload.single('image'), (req, res) => {
+  console.log('進到修改日誌API')
+  const id = req.params.id
+  console.log(id)
+  console.log(req.body)
+  const { posttitle, shift_id, poster, postcontent } = req.body
+  Shiftpost.findByPk(id)
+    .then(shiftpost => {
+      return shiftpost.update({
+        posttitle,
+        shift_id,
+        poster,
+        postcontent
+      })
+        .then(updateShiftpost => {
+          res.redirect('/shiftpost')
+        })
+
+    })
+    .catch(err => {
+      console.log(err)
+    })
+})
+
+app.post('/shiftpost', upload.single('image'), (req, res) => {
+  const { posttitle, poster, postcontent, shift_id } = req.body
+  Shiftpost.create({
+    posttitle,
+    poster,
+    postcontent,
+    shift_id
+  })
+    .then(shiftpost => {
+      console.log(shiftpost)
+      console.log(req.body)
+      res.redirect('/shiftpost')
+    })
+    .catch(err => {
+      console.log(err)
+    })
+})
 
 // app.listen(PORT, () => {
 //   console.log(`App is running on http://localhost:${PORT}`)

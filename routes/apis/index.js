@@ -6,6 +6,7 @@ const multer = require('multer')
 const upload = multer({ dest: 'temp/' })
 const fs = require('fs')
 const { getOffset, getPagination } = require('../../helpers/pagination-helper')
+const { Op } = require('sequelize')
 // connect to db
 const db = require('../../models')
 const Category = db.Category
@@ -17,6 +18,9 @@ const Status = db.Status
 const User = db.User
 const Transfer = db.Transfer
 const Userstatus = db.Userstatus
+const Shiftpost = db.Shiftpost
+const Shift = db.Shift
+const Image = db.Image
 const userController = require('../../controllers/apis/user-controller')
 const { authenticated, authenticatedAdmin } = require('../../middleware/api-auth') // 新增這裡
 const passport = require('passport')
@@ -224,7 +228,7 @@ router.post('/officeAssets/update', upload.single('image'), (req, res) => {
     console.log('======= 呼叫修改資產 officeAssets API =======')
     const assetId = Number(req.body.assetId)
     const { file } = req
-    const { name, Vendor, Model, Description, categoryId, officeId, statusId, secondcategoryId } = req.body
+    const { name, Vendor, Model, Description, categoryId, officeId, statusId, secondcategoryId, sn, pn } = req.body
 
     if (assetId && name && Vendor && Model && Description && categoryId && officeId && statusId) {
         if (file) {
@@ -241,6 +245,8 @@ router.post('/officeAssets/update', upload.single('image'), (req, res) => {
                                 secondcategoryId,
                                 name,
                                 Vendor,
+                                sn,
+                                pn,
                                 Model,
                                 officeId,
                                 Description,
@@ -271,6 +277,8 @@ router.post('/officeAssets/update', upload.single('image'), (req, res) => {
                     return asset.update({
                         name,
                         Vendor,
+                        sn,
+                        pn,
                         Model,
                         Description,
                         categoryId: categoryId,
@@ -323,10 +331,17 @@ router.get('/officeAssets', (req, res) => {
     const DEFAULT_LIMIT = 10
     const officeId = Number(req.query.officeId)
     const categoryId = Number(req.query.categoryId)
+    let Vendor = req.query.Vendor
     const page = Number(req.query.page) || 1
     const limit = Number(req.query.limit) || DEFAULT_LIMIT
-    const name = req.query.name
+    let name = req.query.name
     const offset = getOffset(limit, page)
+    if (name) {
+        name = { [Op.like]: '%' + name + '%' }
+    }
+    if (Vendor) {
+        Vendor = { [Op.like]: '%' + Vendor + '%' }
+    }
     console.log('傳送進來的 page : ')
     console.log(page)
     console.log('傳送進來的 limit : ')
@@ -343,12 +358,13 @@ router.get('/officeAssets', (req, res) => {
             where: {
                 ...officeId ? { officeId } : {},
                 ...name ? { name } : {},
+                ...Vendor ? { Vendor } : {},
                 ...categoryId ? { categoryId } : {}
             },
             order: [
                 ['updated_at', 'DESC']
             ],
-            limit,
+            // limit,
             offset
         }),
         Category.findAll({ raw: true }),
@@ -361,7 +377,7 @@ router.get('/officeAssets', (req, res) => {
                 item.qrcode = url
             })
         })
-        res.json({ assets: assets.rows, pagination: getPagination(limit, page, assets.count), category, office, status, secondcategory })
+        res.json({ assetsCount: assets.count, assets: assets.rows, pagination: getPagination(limit, page, assets.count), category, office, status, secondcategory })
     }).catch(err => {
         console.log(err)
     })
@@ -375,7 +391,7 @@ router.post('/officeAssets/create', upload.single('image'), (req, res) => {
     console.log(req.file)
     console.log('======= 呼叫創建新資產 officeAssets API =======')
     const { file } = req
-    const { name, Vendor, Model, Description } = req.body
+    const { name, Vendor, Model, Description, sn, pn } = req.body
     const Quantity = 1
     const categoryId = req.body.categoryId
     const secondcategoryId = req.body.secondcategoryId
@@ -386,13 +402,15 @@ router.post('/officeAssets/create', upload.single('image'), (req, res) => {
         console.log('傳入的檔案有圖片, 需要進行檔案處理')
         fs.readFile(file.path, (err, data) => {
             if (err) console.log('Error: ', err)
-            fs.writeFile(`upload/${file.originalname}`, data, () => {
+            fs.writeFile(`./upload/${file.originalname}`, data, () => {
                 return Asset.create({
                     statusId,
                     categoryId,
                     secondcategoryId,
                     name,
                     Vendor,
+                    sn,
+                    pn,
                     Model,
                     Quantity,
                     officeId,
@@ -410,7 +428,7 @@ router.post('/officeAssets/create', upload.single('image'), (req, res) => {
                         console.log('File Renamed.');
                     });
                     const qrcodeContent = `https://10.4.100.241:3000/scanqrcode?package=0&assetId=${assetId}`
-                    const qrcode = `./images/qrcode/assets/${assetId}.png`
+                    const qrcode = `/images/qrcode/assets/${assetId}.png`
                     // 針對 asset 產生專屬 QR code
                     QRCode.toFile(`./public/images/qrcode/assets/${assetId}.png`, qrcodeContent, {
                         color: {
@@ -449,6 +467,8 @@ router.post('/officeAssets/create', upload.single('image'), (req, res) => {
             secondcategoryId,
             name,
             Vendor,
+            sn,
+            pn,
             Model,
             Quantity,
             officeId,
@@ -457,7 +477,7 @@ router.post('/officeAssets/create', upload.single('image'), (req, res) => {
             console.log('==== 產生 asset qrcode 並存入 DB ====')
             const assetId = asset.dataValues.id
             const qrcodeContent = `https://10.4.100.241:3000/scanqrcode?package=0&assetId=${assetId}`
-            const qrcode = `./images/qrcode/assets/${assetId}.png`
+            const qrcode = `/images/qrcode/assets/${assetId}.png`
             // 針對 asset 產生專屬 QR code
             QRCode.toFile(`./public/images/qrcode/assets/${assetId}.png`, qrcodeContent, {
                 color: {
@@ -1028,5 +1048,148 @@ router.post('/secondcategories', (req, res) => {
 
 })
 
+// 修改特定 offices 資產 API - 未完成
+router.post('/secondcategories/update', (req, res) => {
+    const secondcategoryId = req.body.id
+    const name = req.body.name
+    const Description = req.body.Description
+    Secondcategory.findByPk(secondcategoryId)
+        .then(secondcategory => {
+            if (secondcategory) {
+                return secondcategory.update({
+                    name: name,
+                    Description: Description
+                }).then((secondcategory) => {
+                    res.json({ status: 'ok', message: '已成功修改', data: secondcategory })
+                })
 
+            } else {
+                res.json({ status: 'Fail', message: '沒有查詢到次類別' })
+            }
+        })
+        .catch(err => {
+            console.log(err)
+        })
+})
+
+
+
+
+// 獲取所有值班日誌 API  - 尚有分頁待完成
+router.get('/shiftpost', (req, res) => {
+    Shiftpost.findAll({
+        raw: true,
+        nest: true,
+        include: [Shift],
+        attributes: ['id', 'posttitle', 'poster', 'postcontent', 'createdAt', 'updatedAt', 'isdeleted'],
+        order: [['createdAt', 'DESC'],]
+    })
+        .then(shiftpost => {
+            console.log(shiftpost)
+            res.json({ status: 'ok', message: '成功獲得所有值班日誌', data: shiftpost })
+        })
+        .catch(err => {
+            console.log(err)
+        })
+})
+
+
+// 上傳值班日誌圖片 API - 完成
+router.post('/shiftpost/images/upload', upload.single('image'), (req, res) => {
+    const { file } = req
+    if (file) {
+        fs.readFile(file.path, (err, data) => {
+            if (err) console.log('Error: ', err)
+            const filename = Date.now() + '-' + file.originalname
+            const filepath = `/images/shiftpost/` + filename
+            const fileencoding = file.encoding
+            const filemimetype = file.mimetype
+            const filesize = file.size
+
+            fs.writeFile(`public/` + filepath, data, () => {
+                return Image.create({
+                    filename,
+                    filepath,
+                    filesize,
+                    fileencoding,
+                    filemimetype
+                }).then(image => {
+                    return res.json({ status: 'ok', message: '成功上傳圖片', url: image.filepath })
+                })
+            })
+        })
+    }
+})
+
+// 獲取特定值班日誌 API - 完成
+router.get('/shiftpost/:id', (req, res) => {
+    const id = req.params.id
+    Shiftpost.findByPk(id, { nest: true, raw: true, include: [Shift] })
+        .then(shiftpost => {
+            console.log(shiftpost)
+            res.json({ status: 'ok', message: '成功獲得單篇值班日誌資料', data: shiftpost })
+        })
+        .catch(err => {
+            console.log(err)
+        })
+})
+
+// 新增值班日誌 API - 完成
+router.post('/shiftpost', upload.single('image'), (req, res) => {
+    const { posttitle, poster, postcontent, shift_id } = req.body
+    Shiftpost.create({
+        posttitle,
+        poster,
+        postcontent,
+        shift_id
+    })
+        .then(shiftpost => {
+            res.json({ status: 'ok', message: '成功新增值班日誌', data: shiftpost })
+        })
+        .catch(err => {
+            console.log(err)
+        })
+})
+
+
+// 更新值班日誌 API 
+router.post('/shiftpost/:id/update', upload.single('image'), (req, res) => {
+    console.log('進到修改日誌API')
+    const id = req.params.id
+    const { posttitle, shift_id, poster, postcontent } = req.body
+    Shiftpost.findByPk(id)
+        .then(shiftpost => {
+            return shiftpost.update({
+                posttitle,
+                shift_id,
+                poster,
+                postcontent
+            })
+                .then(updateShiftpost => {
+                    res.json({ status: 'ok', message: '成功更改值班日誌內容', data: updateShiftpost })
+                })
+        })
+        .catch(err => {
+            console.log(err)
+        })
+})
+
+
+// 刪除值班日誌 API - 完成
+router.post('/shiftpost/:id/delete', upload.single('image'), (req, res) => {
+    console.log('進到刪除日誌API')
+    const id = req.params.id
+    Shiftpost.findByPk(id)
+        .then(shiftpost => {
+            return shiftpost.update({
+                isdeleted: true
+            })
+                .then(updateShiftpost => {
+                    res.json({ status: 'ok', message: '成功刪除值班日誌', data: updateShiftpost })
+                })
+        })
+        .catch(err => {
+            console.log(err)
+        })
+})
 module.exports = router

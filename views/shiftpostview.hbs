@@ -1,0 +1,50 @@
+<div class="row">
+    <div class="h2">交班日誌</div>
+    <div class="col-3"><a class="btn btn-outline-primary" href="/shiftpost/create">新增值班日誌</a></div>
+    <div class="col-3"></div>
+    <div class="col-3"></div>
+    <div class="col-3"></div>
+    <table class="table table-hover mt-3">
+        <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">標題</th>
+                <th scope="col">班別</th>
+                <th scope="col">發文者</th>
+                <th scope="col">發佈時間</th>
+                <th scope="col">修改時間</th>
+                <th scope="col">詳情</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each shiftpost}}
+            {{#if this.isdeleted}}
+            <tr>
+                <th scope="row">{{this.id}}</th>
+                <td>{{this.posttitle}}</td>
+                <td>{{this.Shift.name}}</td>
+                <td>{{this.poster}}</td>
+                <td id="createdAtTime">{{this.createdAt}}</td>
+                <td id="updatedAtTime">{{this.updatedAt}}</td>
+                <td><a href="/shiftpost/{{this.id}}" class="btn btn-outline-success">查看</a></td>
+            </tr>
+            {{else}}
+            <tr>
+                <th scope="row">{{this.id}}</th>
+                <td>{{this.posttitle}}</td>
+                <td>{{this.Shift.name}}</td>
+                <td>{{this.poster}}</td>
+                <td id="createdAtTime">{{this.createdAt}}</td>
+                <td id="updatedAtTime">{{this.updatedAt}}</td>
+                <td><a href="/shiftpost/{{this.id}}" class="btn btn-outline-success">查看</a></td>
+            </tr>
+            {{/if}}
+            {{/each}}
+        </tbody>
+    </table>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.js"></script>
+<script>
+
+</script>
