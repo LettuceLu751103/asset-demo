@@ -1,8 +1,16 @@
 <nav class="nav  nav-tabs">
     <a class="nav-link " href="/">首頁</a>
-    <a class="nav-link" aria-current="page" href="/categories">資產類別</a>
-    <a class="nav-link" href="/offices">辦公室類別</a>
-    <a class="nav-link" href="/officeAssets">辦公室資產</a>
+    <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-expanded="false">資產相關</a>
+        <div class="dropdown-menu">
+            <a class="dropdown-item" href="/categories">資產類別</a>
+            <a class="dropdown-item" href="/offices">辦公室類別</a>
+            <a class="dropdown-item" href="/officeAssets">辦公室資產</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="#">Separated link</a>
+        </div>
+    </li>
+
     <a class="nav-link" href="/gatepass">GatePass</a>
     <a class="nav-link active" href="/shiftpost">交班日誌</a>
     <a class="nav-link " href="/bulletin">公告欄</a>
