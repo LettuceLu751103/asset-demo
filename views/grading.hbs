@@ -1,0 +1,26 @@
+<div class="card">
+    <div class="card-header">
+        當前公告等級
+    </div>
+    <ul class="list-group list-group-flush">
+        {{#each grading}}
+        <li class="list-group-item">{{this.id}} - {{this.name}}</li>
+        {{/each}}
+    </ul>
+</div>
+
+<form action="/grading/create" method="POST">
+    <div class="mb-4 mt-4 text-center">
+        <h1 class="h3 font-weight-normal mb-3">新增公告等級</h1>
+    </div>
+    <div class="form-row mb-3">
+        <label class="form-label" for="name">Name</label>
+        <input class="form-control" type="text" name="name" id="name" placeholder="輸入公告等級" required>
+    </div>
+    <div class="form-row mb-3">
+        <label class="form-label" for="Description">Description</label>
+        <input class="form-control" type="text" name="Description" id="Description" placeholder="輸入公告等級相關描述" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button>
+    <a class="btn btn-danger" href="/bulletin">Return</a>
+</form>

@@ -1,0 +1,42 @@
+<div class="card">
+    <div class="card-header">
+        當前公告類別
+    </div>
+    <ul class="list-group list-group-flush">
+        {{#each bulletincategory}}
+        <li class="list-group-item">
+            {{this.dataValues.id}} - {{this.dataValues.name}}
+            <ul>
+                {{#each this.dataValues.Bulletinsecondcategories}}
+                <li>{{this.dataValues.name}}</li>
+                {{/each}}
+            </ul>
+        </li>
+        {{/each}}
+    </ul>
+</div>
+
+
+
+<form action="/bulletinsecondcategory/create" method="POST">
+    <div class="mb-4 text-center">
+        <h1 class="h3 font-weight-normal mb-3">新增公告次類別</h1>
+    </div>
+
+    <label for="posttitle">公告類別</label>
+    <select class="custom-select" name="bulletincategory_id">
+        {{#each bulletincategory}}
+        <option value="{{this.dataValues.id}}">{{this.dataValues.name}}</option>
+        {{/each}}
+    </select>
+    <div class="form-group mb-3 mt-3">
+        <label class="form-label" for="name">Name</label>
+        <input class="form-control" type="text" name="name" id="name" placeholder="輸入公告次類別" required>
+    </div>
+    <div class="form-group mb-3">
+        <label class="form-label" for="Description">Description</label>
+        <input class="form-control" type="text" name="Description" id="Description" placeholder="輸入公告次類別相關描述" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button>
+    <a class="btn btn-danger" href="/bulletin">Return</a>
+</form>

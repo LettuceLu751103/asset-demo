@@ -1,0 +1,55 @@
+<nav class="nav  nav-tabs">
+    <a class="nav-link " href="/">首頁</a>
+    <a class="nav-link" aria-current="page" href="/categories">資產類別</a>
+    <a class="nav-link" href="/offices">辦公室類別</a>
+    <a class="nav-link" href="/officeAssets">辦公室資產</a>
+    <a class="nav-link" href="/gatepass">GatePass</a>
+    <a class="nav-link" href="/shiftpost">交班日誌</a>
+    <a class="nav-link active" href="/bulletin">公告欄</a>
+</nav>
+<div class="row mt-3">
+    <div class="h2">公告欄</div>
+    <div class="col-6">
+        <a class="btn btn-outline-primary" href="/bulletin/create">新增公告</a>
+        <a class="btn btn-outline-primary" href="/bulletincategory/create">新增類別</a>
+        <a class="btn btn-outline-primary" href="/bulletinsecondcategory/create">新增次類別</a>
+        <a class="btn btn-outline-primary" href="/grading/create">新增公告等級</a>
+    </div>
+    <div class="col-6"></div>
+
+    <table class="table table-hover mt-3">
+        <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">標題</th>
+                <th scope="col">公告類別</th>
+                <th scope="col">公告次類別</th>
+                <th scope="col">公告等級</th>
+                <th scope="col">發佈者</th>
+                <th scope="col">發佈時間</th>
+                <th scope="col">修改時間</th>
+                <th scope="col">詳情</th>
+            </tr>
+        </thead>
+        <tbody>
+
+            <tr>
+                <th scope="row">1</th>
+                <td>服裝儀容</td>
+                <td>辦公室管理規章</td>
+                <td>服裝</td>
+                <td>一般</td>
+                <td>Lettuce</td>
+                <td id="createdAtTime">Jun 17 2022 17:24:18</td>
+                <td id="updatedAtTime">Jun 17 2022 17:24:18</td>
+                <td><a href="/shiftpost/{{this.id}}" class="btn btn-outline-success">查看</a></td>
+            </tr>
+
+        </tbody>
+    </table>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.js"></script>
+<script>
+
+</script>

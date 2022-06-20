@@ -1,0 +1,199 @@
+<div class="row">
+    <div class="h1">新增公告</div>
+    <form action="/bulletin/create" method="post" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="posttitle">標題</label>
+            <input type="text" class="form-control" id="posttitle" placeholder="標題...." name="posttitle" value="xxx 公告">
+        </div>
+        <label for="posttitle">公告類別</label>
+        <select class="custom-select" name="bulletincategoryId" id="bulletincategory">
+            <option value=0 selected>--- 選擇 ---</option>
+            {{#each bulletincategory}}
+            <option value="{{this.id}}">{{this.name}}</option>
+            {{/each}}
+        </select>
+        <label for="posttitle" class="mt-3">公告次類別</label>
+        <select class="custom-select" name="bulletinsecondcategoryId" id="bulletinsecondcategory">
+            <option value=0 selected>--- 選擇 ---</option>
+            {{#each shift}}
+            <option value="{{this.id}}">{{this.name}}</option>
+            {{/each}}
+        </select>
+        <label for="posttitle" class="mt-3">公告等級</label>
+        <select class="custom-select" name="gradingId">
+            <option selected>--- 選擇 ---</option>
+            {{#each grading}}
+            <option value="{{this.id}}">{{this.name}}</option>
+            {{/each}}
+        </select>
+        <div class="form-group mt-3">
+            <label for="poster">發佈者</label>
+            <input type="text" class="form-control" id="poster" value="Lettuce" name="poster">
+        </div>
+
+        <textarea id="editor" name="postcontent">請在此處新增公告內容...</textarea>
+
+        <button type="submit" class="btn btn-primary mt-3 btn-block">Submit</button>
+        <a href="/bulletin" class="btn btn-danger mt-3 btn-block">Return</a>
+    </form>
+
+
+
+</div>
+
+
+<script src="https://cdn.ckeditor.com/ckeditor5/34.1.0/classic/ckeditor.js"></script>
+
+<script type="">
+const bulletincategory = document.querySelector('#bulletincategory')
+const bulletinsecondcategory = document.querySelector('#bulletinsecondcategory')
+bulletincategory.addEventListener('change',(event)=>{
+    console.log(event.target.value)
+    const id = event.target.value
+    if(id==='0'){
+        alert('請選擇公告類別')
+    }else {
+        axios.get(`/bulletinsecondcategory/${id}`)
+        .then(result=>{
+            let rawHtml = ''
+            console.log(result.data.data.length)
+            if(result.data.data.length>0){
+                result.data.data.forEach(dd =>{
+                console.log(dd.name)
+                rawHtml += `
+                <option value="${dd.id}">${dd.name}</option>
+                `
+            })}else {
+                rawHtml += `
+                <option value="0">無</option>
+                `
+            }
+            
+            bulletinsecondcategory.innerHTML = rawHtml
+        })
+        .catch(err=>{
+            console.log(err)
+        })
+    }
+})
+class MyUploadAdapter {
+    constructor( loader ) {
+        // The file loader instance to use during the upload.
+        this.loader = loader;
+    }
+
+    // Starts the upload process.
+    upload() {
+        return this.loader.file
+            .then( file => new Promise( ( resolve, reject ) => {
+                this._initRequest();
+                this._initListeners( resolve, reject, file );
+                this._sendRequest( file );
+            } ) );
+    }
+
+    // Aborts the upload process.
+    abort() {
+        if ( this.xhr ) {
+            this.xhr.abort();
+        }
+    }
+
+    // Initializes the XMLHttpRequest object using the URL passed to the constructor.
+    _initRequest() {
+        const xhr = this.xhr = new XMLHttpRequest();
+
+        // Note that your request may look different. It is up to you and your editor
+        // integration to choose the right communication channel. This example uses
+        // a POST request with JSON as a data structure but your configuration
+        // could be different.
+        xhr.open( 'POST', 'https://mxitweb.lettucelu.com/bulletin/images/upload', true );
+        xhr.responseType = 'json';
+    }
+
+    // Initializes XMLHttpRequest listeners.
+    _initListeners( resolve, reject, file ) {
+        const xhr = this.xhr;
+        const loader = this.loader;
+        const genericErrorText = `Couldn't upload file: ${ file.name }.`;
+
+        xhr.addEventListener( 'error', () => reject( genericErrorText ) );
+        xhr.addEventListener( 'abort', () => reject() );
+        xhr.addEventListener( 'load', () => {
+            const response = xhr.response;
+
+            // This example assumes the XHR server's "response" object will come with
+            // an "error" which has its own "message" that can be passed to reject()
+            // in the upload promise.
+            //
+            // Your integration may handle upload errors in a different way so make sure
+            // it is done properly. The reject() function must be called when the upload fails.
+            if ( !response || response.error ) {
+                return reject( response && response.error ? response.error.message : genericErrorText );
+            }
+
+            // If the upload is successful, resolve the upload promise with an object containing
+            // at least the "default" URL, pointing to the image on the server.
+            // This URL will be used to display the image in the content. Learn more in the
+            // UploadAdapter#upload documentation.
+            resolve( {
+                default: response.url
+            } );
+        } );
+
+        // Upload progress when it is supported. The file loader has the #uploadTotal and #uploaded
+        // properties which are used e.g. to display the upload progress bar in the editor
+        // user interface.
+        if ( xhr.upload ) {
+            xhr.upload.addEventListener( 'progress', evt => {
+                if ( evt.lengthComputable ) {
+                    loader.uploadTotal = evt.total;
+                    loader.uploaded = evt.loaded;
+                }
+            } );
+        }
+    }
+
+    // Prepares the data and sends the request.
+    _sendRequest( file ) {
+        // Prepare the form data.
+        const data = new FormData();
+
+        data.append( 'image', file );
+
+        // Important note: This is the right place to implement security mechanisms
+        // like authentication and CSRF protection. For instance, you can use
+        // XMLHttpRequest.setRequestHeader() to set the request headers containing
+        // the CSRF token generated earlier by your application.
+
+        // Send the request.
+        this.xhr.send( data );
+    }
+
+
+
+}
+
+function MyCustomUploadAdapterPlugin( editor ) {
+    editor.plugins.get( 'FileRepository' ).createUploadAdapter = ( loader ) => {
+        // Configure the URL to the upload script in your back-end here!
+        return new MyUploadAdapter( loader );
+    };
+}
+
+    ClassicEditor
+        .create( document.querySelector( '#editor' ) , {
+        extraPlugins: [ MyCustomUploadAdapterPlugin ],
+        removePlugins: ['CKFinderUploadAdapter', 'CKFinder', 'EasyImage', 'MediaEmbed'],
+
+        // ...
+    })
+        .then( editor => {
+                console.log( editor );
+        } )
+        .catch( error => {
+                console.error( error );
+        } );
+
+
+</script>

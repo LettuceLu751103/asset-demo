@@ -72,6 +72,10 @@ const Transfer = db.Transfer
 const Shiftpost = db.Shiftpost
 const Shift = db.Shift
 const Image = db.Image
+const Grading = db.Grading
+const Bulletincategory = db.Bulletincategory
+const Bulletinsecondcategory = db.Bulletinsecondcategory
+// 這邊可以改成解構賦值的方式處理, const {xxxx} = db.xxxx
 
 
 // QR code
@@ -1417,6 +1421,204 @@ app.post('/shiftpost', upload.single('image'), (req, res) => {
       console.log(err)
     })
 })
+
+
+app.get('/bulletin', (req, res) => {
+  console.log('這是布告欄頁面')
+  res.render('bulletinview')
+})
+
+app.get('/bulletin/create', (req, res) => {
+  console.log('這是新增布告欄頁面')
+  Promise.all([Grading.findAll({ raw: true, nest: true }), Bulletincategory.findAll({ raw: true, nest: true })])
+    .then(([grading, bulletincategory]) => {
+      console.log(grading)
+      res.render('bulletin', { grading, bulletincategory })
+    })
+    .catch(err => {
+      console.log(err)
+    })
+
+})
+
+app.post('/bulletin/create', upload.single('image'), (req, res) => {
+  console.log(req.body)
+
+  res.redirect('/bulletin')
+})
+
+app.get('/grading/create', (req, res) => {
+  console.log('進入新增公告等級頁面')
+  Grading.findAll({ raw: true, nest: true })
+    .then(grading => {
+      console.log(grading)
+      res.render('grading', { grading })
+    })
+    .catch(err => {
+      console.log(err)
+    })
+
+})
+
+// 創建公告等級
+app.post('/grading/create', (req, res) => {
+  console.log(req.body)
+  const { name, Description } = req.body
+  if (!name) {
+    console.log('公告等級不可為空')
+    return res.redirect('/bulletin')
+  }
+  Grading.findOne({ where: { name: name } })
+    .then(grading => {
+      if (grading) {
+        console.log('創建失敗, 已有相同名稱的公告等級')
+        return res.redirect('/bulletin')
+      }
+      return Grading.create({
+        name,
+        Description
+      }).then(grading => {
+        console.log('創建 graing 成功')
+        res.redirect('/bulletin')
+      }).catch(err => {
+        console.log(err)
+      })
+    })
+})
+
+// 創建公告類別頁面
+app.get('/bulletincategory/create', (req, res) => {
+  console.log('進入新增公告類別頁面')
+  Bulletincategory.findAll({ raw: true, nest: true })
+    .then(bulletincategory => {
+      res.render('bulletincategory', { bulletincategory })
+    })
+    .catch(err => {
+      console.log(err)
+    })
+
+})
+
+// 創建公告類別
+app.post('/bulletincategory/create', (req, res) => {
+  console.log(req.body)
+  const { name, Description } = req.body
+  if (!name) {
+    console.log('缺少公告類別名稱')
+    res.redirect('back')
+  }
+  Bulletincategory.findOne({ where: { name: name } })
+    .then(bulletincategory => {
+      if (bulletincategory) {
+        console.log('相同公告類別名稱, 創建失敗')
+        res.redirect('back')
+      }
+      return Bulletincategory.create({
+        name,
+        Description
+      }).then(bc => {
+        console.log('創建公告類別成功')
+        res.redirect('/bulletin')
+      })
+    })
+
+})
+
+// 創建公告次類別頁面
+app.get('/bulletinsecondcategory/create', (req, res) => {
+  console.log('進入新增公告次類別頁面')
+  Bulletincategory.findAll({ nest: true, include: Bulletinsecondcategory })
+    .then(bulletincategory => {
+
+      console.log(bulletincategory)
+      res.render('bulletinsecondcategory', { bulletincategory })
+    })
+    .catch(err => {
+      console.log(err)
+    })
+})
+// 創建公告次類別
+app.post('/bulletinsecondcategory/create', (req, res) => {
+  console.log('準備新增次類別')
+  const { bulletincategory_id, name, Description } = req.body
+  console.log(req.body)
+  if (!bulletincategory_id) {
+    console.log('沒有公告主類別')
+    return res.redirect('back')
+  }
+  if (!name) {
+    console.log('缺少次類別名稱')
+    return res.redirect('back')
+  }
+  Bulletinsecondcategory.findOne({ where: { name: name } })
+    .then(bulletinsecondcategory => {
+      if (bulletinsecondcategory) {
+        console.log('次類別名稱重複, 新增失敗')
+        return res.redirect('back')
+      }
+      Bulletinsecondcategory.create({
+        name,
+        Description,
+        bulletincategory_id: Number(bulletincategory_id)
+      }).then(bulletinsecondcategory => {
+        console.log('新增次類別成功')
+        res.redirect('/bulletin')
+      }).catch(err => {
+        console.log(err)
+      })
+    })
+    .catch(err => {
+      console.log(err)
+    })
+})
+
+app.get('/bulletinsecondcategory/:id', (req, res) => {
+  const id = req.params.id
+  Bulletinsecondcategory.findAll({ where: { bulletincategory_id: id } })
+    .then(bulletinsecondcategory => {
+      console.log(bulletinsecondcategory)
+      res.json({ status: 'ok', message: '查詢到次類別', data: bulletinsecondcategory })
+    })
+    .catch(err => {
+      console.log(err)
+    })
+})
+
+// 佈告欄上傳圖片 API
+app.post('/bulletin/images/upload', upload.single('image'), (req, res) => {
+
+
+  const { file } = req
+
+  if (file) {
+    console.log('prepare to save the img.')
+    fs.readFile(file.path, (err, data) => {
+      if (err) console.log('Error: ', err)
+      const filename = Date.now() + '-' + file.originalname
+      const filepath = `/images/bulletin/` + filename
+      const fileencoding = file.encoding
+      const filemimetype = file.mimetype
+      const filesize = file.size
+
+      fs.writeFile(`public/` + filepath, data, () => {
+        return Image.create({
+          filename,
+          filepath,
+          filesize,
+          fileencoding,
+          filemimetype
+        }).then(image => {
+          return res.json({ url: image.filepath })
+        })
+      })
+    })
+    console.log(req.file)
+    console.log(Date.now())
+
+  }
+
+})
+
 
 // app.listen(PORT, () => {
 //   console.log(`App is running on http://localhost:${PORT}`)
