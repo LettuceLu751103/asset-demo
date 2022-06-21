@@ -5,7 +5,8 @@ module.exports = (sequelize, DataTypes) => {
     Description: {
       allowNull: true,
       type: DataTypes.STRING
-    }
+    },
+
   }, {
     underscored: true,
     modelName: 'Bulletincategory',
@@ -13,7 +14,7 @@ module.exports = (sequelize, DataTypes) => {
   Bulletincategory.associate = function (models) {
     // associations can be defined here
     Bulletincategory.hasMany(models.Bulletinsecondcategory, { foreignKey: 'bulletincategoryId' })
-    Bulletincategory.belongsTo(models.Bulletin, { foreignKey: 'bulletincategoryId' })
+    Bulletincategory.hasMany(models.Bulletin, { foreignKey: 'bulletincategoryId' })
   };
   return Bulletincategory;
 };

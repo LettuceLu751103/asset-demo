@@ -1,0 +1,38 @@
+<div class="row">
+    <div class="col">
+        <div class="card w-100 mt-3">
+            <div class="card-header">
+                {{bulletin.posttitle}}
+            </div>
+            <div class="card-body">
+                {{{bulletin.postcontent}}}
+            </div>
+
+            <div class="card-footer">
+                <div class="col-6">
+                    <small class="text-muted"> 公告類別: {{bulletin.Bulletincategory.name}}</small>
+                </div>
+                <div class="col-6">
+                    <small class="text-muted"> 公告次類別: {{bulletin.Bulletinsecondcategory.name}}</small>
+                </div>
+                <div class="col-6">
+                    <small class="text-muted"> 公告等級: {{bulletin.Grading.name}}</small>
+                </div>
+                <div class="col-6">
+                    <small class="text-muted"> 發佈人: {{bulletin.poster}}</small>
+                </div>
+                <div class="col-6">
+                    <small class="text-muted"> 發布時間: {{moment bulletin.createdAt}}</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row mt-3 mb-5">
+    <div class="col-6">
+        <a class="btn btn-outline-success btn-block" href="/bulletin/{{bulletin.id}}/update">修改</a>
+    </div>
+    <div class="col-6">
+        <a class="btn btn-outline-danger btn-block" href="/bulletin">返回</a>
+    </div>
+</div>

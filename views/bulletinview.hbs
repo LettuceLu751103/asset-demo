@@ -53,19 +53,19 @@
             </tr>
         </thead>
         <tbody>
-
+            {{#each bulletin}}
             <tr>
-                <th scope="row">1</th>
-                <td>服裝儀容</td>
-                <td>辦公室管理規章</td>
-                <td>服裝</td>
-                <td>一般</td>
-                <td>Lettuce</td>
-                <td id="createdAtTime">Jun 17 2022 17:24:18</td>
-                <td id="updatedAtTime">Jun 17 2022 17:24:18</td>
-                <td><a href="/shiftpost/{{this.id}}" class="btn btn-outline-success">查看</a></td>
+                <th scope="row">{{this.id}}</th>
+                <td>{{this.posttitle}}</td>
+                <td>{{this.Bulletincategory.name}}</td>
+                <td>{{this.Bulletinsecondcategory.name}}</td>
+                <td>{{this.Grading.name}}</td>
+                <td>{{this.poster}}</td>
+                <td id="createdAtTime">{{moment this.createdAt}}</td>
+                <td id="updatedAtTime">{{moment this.updatedAt}}</td>
+                <td><a href="/bulletin/{{this.id}}" class="btn btn-outline-success">查看</a></td>
             </tr>
-
+            {{/each}}
         </tbody>
     </table>
 </div>

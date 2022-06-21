@@ -13,12 +13,13 @@ module.exports = (sequelize, DataTypes) => {
     grading_id: DataTypes.INTEGER,
   }, {
     underscored: true,
+    modelName: 'Bulletin',
   });
   Bulletin.associate = function (models) {
     // associations can be defined here
-    Bulletin.hasMany(models.Bulletincategory, { foreignKey: 'bulletincategoryId' })
-    Bulletin.hasMany(models.Bulletinsecondcategory, { foreignKey: 'bulletinsecondcategoryId' })
-    Bulletin.hasMany(models.Grading, { foreignKey: 'gradingId' })
+    Bulletin.belongsTo(models.Bulletincategory, { foreignKey: 'bulletincategoryId' })
+    Bulletin.belongsTo(models.Bulletinsecondcategory, { foreignKey: 'bulletinsecondcategoryId' })
+    Bulletin.belongsTo(models.Grading, { foreignKey: 'gradingId' })
   };
   return Bulletin;
 };

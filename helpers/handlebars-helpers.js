@@ -1,3 +1,5 @@
+const moment = require('moment')
+
 module.exports = {
     ifCond: function (a, b, options) {
         return a === b ? options.fn(this) : options.inverse(this)
@@ -12,5 +14,8 @@ module.exports = {
         } else if (statusCode === 5) {
             return '撿貨中'
         }
+    },
+    moment: function (a) {
+        return moment(a).fromNow()
     }
 }

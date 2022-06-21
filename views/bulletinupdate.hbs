@@ -1,40 +1,39 @@
 <div class="row">
-    <div class="h1">新增公告</div>
-    <form action="/bulletin/create" method="post" enctype="multipart/form-data">
+    <div class="h1">修改公告</div>
+    <form action="/bulletin/{{bulletin.id}}/update" method="post" enctype="multipart/form-data">
         <div class="form-group">
             <label for="posttitle">標題</label>
-            <input type="text" class="form-control" id="posttitle" placeholder="標題...." name="posttitle" value="xxx 公告">
+            <input type="text" class="form-control" id="posttitle" placeholder="標題...." name="posttitle"
+                value="{{bulletin.posttitle}}">
         </div>
         <label for="posttitle">公告類別</label>
         <select class="custom-select" name="bulletincategoryId" id="bulletincategory">
-            <option value=0 selected>--- 選擇 ---</option>
+
             {{#each bulletincategory}}
-            <option value="{{this.id}}">{{this.name}}</option>
+            <option value="{{this.id}}" class="bulletincategoryOption">{{this.name}}</option>
             {{/each}}
         </select>
         <label for="posttitle" class="mt-3">公告次類別</label>
         <select class="custom-select" name="bulletinsecondcategoryId" id="bulletinsecondcategory">
-            <option value=0 selected>--- 選擇 ---</option>
-            {{#each shift}}
-            <option value="{{this.id}}">{{this.name}}</option>
-            {{/each}}
+
+
         </select>
         <label for="posttitle" class="mt-3">公告等級</label>
-        <select class="custom-select" name="gradingId">
-            <option value='0' selected>--- 選擇 ---</option>
+        <select class="custom-select" name="gradingId" id="grading">
+
             {{#each grading}}
-            <option value="{{this.id}}">{{this.name}}</option>
+            <option value="{{this.id}}" class="gradingOption">{{this.name}}</option>
             {{/each}}
         </select>
         <div class="form-group mt-3">
             <label for="poster">發佈者</label>
-            <input type="text" class="form-control" id="poster" value="Lettuce" name="poster">
+            <input type="text" class="form-control" id="poster" value="{{bulletin.poster}}" name="poster">
         </div>
 
-        <textarea id="editor" name="postcontent">請在此處新增公告內容...</textarea>
+        <textarea id="editor" name="postcontent">{{bulletin.postcontent}}</textarea>
 
         <button type="submit" class="btn btn-primary mt-3 btn-block">Submit</button>
-        <a href="/bulletin" class="btn btn-danger mt-3 btn-block">Return</a>
+        <a href="/bulletin/{{bulletin.id}}" class="btn btn-danger mt-3 btn-block">Return</a>
     </form>
 
 
@@ -47,6 +46,59 @@
 <script type="">
 const bulletincategory = document.querySelector('#bulletincategory')
 const bulletinsecondcategory = document.querySelector('#bulletinsecondcategory')
+const bulletincategoryOption = document.querySelectorAll('.bulletincategoryOption')
+const grading = document.querySelector('#grading')
+const gradingOption = document.querySelectorAll('.gradingOption')
+console.log({{bulletin.bulletincategory_id}})
+console.log(bulletincategory)
+console.log(bulletincategoryOption)
+
+axios.get(`/bulletinsecondcategory/{{bulletin.bulletincategory_id}}`)
+        .then(result=>{
+            let rawHtml = ''
+            console.log(result.data.data.length)
+            if(result.data.data.length>0){
+                result.data.data.forEach(dd =>{
+                console.log(dd.id)
+                if(dd.id == {{bulletin.bulletinsecondcategory_id}}){
+                rawHtml += `
+                <option value="${dd.id}" selected>${dd.name}</option>
+                `
+                }else{
+                    rawHtml += `
+                    <option value="${dd.id}">${dd.name}</option>
+                    `
+                }
+                
+            })}else {
+                rawHtml += `
+                <option value="0">無</option>
+                `
+            }
+            
+            bulletinsecondcategory.innerHTML = rawHtml
+        })
+        .catch(err=>{
+            console.log(err)
+        })
+bulletincategoryOption.forEach((option, index)=>{
+    console.log(option.value)
+    console.log(index)
+    if(option.value == {{bulletin.bulletincategory_id}}){
+        console.log('比對成功, 更改 select equal true')
+        bulletincategory.options[index].selected  = true
+    }
+})
+
+gradingOption.forEach((option, index)=>{
+    console.log(option.value)
+    console.log(index)
+    if(option.value == {{bulletin.grading_id}}){
+        console.log('比對成功, 更改 select equal true')
+        grading.options[index].selected  = true
+    }
+})
+
 bulletincategory.addEventListener('change',(event)=>{
     console.log(event.target.value)
     const id = event.target.value

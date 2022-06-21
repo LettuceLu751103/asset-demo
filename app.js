@@ -1426,10 +1426,17 @@ app.post('/shiftpost', upload.single('image'), (req, res) => {
 
 app.get('/bulletin', (req, res) => {
   console.log('這是布告欄頁面')
-  Bulletin.findAll({ raw: true, nest: true })
+  Bulletin.findAll({
+    raw: true, nest: true, include: [
+      Bulletincategory,
+      Bulletinsecondcategory,
+      Grading,
+    ],
+    order: [['updatedAt', 'DESC'],]
+  })
     .then(bulletin => {
-      console.log(bulletin)
-      res.render('bulletinview')
+      // console.log(bulletin)
+      res.render('bulletinview', { bulletin })
     })
     .catch(err => {
       console.log(err)
@@ -1437,11 +1444,13 @@ app.get('/bulletin', (req, res) => {
 
 })
 
+
+
 app.get('/bulletin/create', (req, res) => {
   console.log('這是新增布告欄頁面')
   Promise.all([Grading.findAll({ raw: true, nest: true }), Bulletincategory.findAll({ raw: true, nest: true })])
     .then(([grading, bulletincategory]) => {
-      console.log(grading)
+      // console.log(grading)
       res.render('bulletin', { grading, bulletincategory })
     })
     .catch(err => {
@@ -1452,8 +1461,42 @@ app.get('/bulletin/create', (req, res) => {
 
 app.post('/bulletin/create', upload.single('image'), (req, res) => {
   console.log(req.body)
+  const { posttitle, bulletincategoryId, bulletinsecondcategoryId, gradingId, poster, postcontent } = req.body
+  if (!posttitle.trim()) {
+    console.log('標題不可為空')
+    return res.redirect('/bulletin')
+  } else if (!bulletincategoryId.trim() || bulletincategoryId === '0') {
+    console.log('公告類別數值不正確')
+    return res.redirect('/bulletin')
+  } else if (!bulletinsecondcategoryId.trim()) {
+    console.log('公告次類別數值不正確')
+    return res.redirect('/bulletin')
+  } else if (!gradingId.trim() || gradingId === '0') {
+    console.log('公告等級數值不正確')
+    return res.redirect('/bulletin')
+  } else if (!poster.trim()) {
+    console.log('發佈者不可為空')
+    return res.redirect('/bulletin')
+  } else if (!postcontent.trim()) {
+    console.log('發佈內容不可為空')
+    return res.redirect('/bulletin')
+  } else {
 
-  res.redirect('/bulletin')
+    Bulletin.create({
+      posttitle,
+      bulletincategory_id: Number(bulletincategoryId),
+      bulletinsecondcategory_id: Number(bulletinsecondcategoryId),
+      grading_id: Number(gradingId),
+      poster,
+      postcontent
+    }).then(bulletin => {
+      console.log('資料寫入成功')
+      res.redirect('/bulletin')
+    }).catch(err => {
+      console.log(err)
+    })
+  }
+
 })
 
 app.get('/grading/create', (req, res) => {
@@ -1629,6 +1672,114 @@ app.post('/bulletin/images/upload', upload.single('image'), (req, res) => {
 })
 
 
+
+app.get('/bulletin/:id', (req, res) => {
+  const id = req.params.id
+  Promise.all([
+    Bulletin.findByPk(id, {
+      nest: true, raw: true, include: [
+        Bulletincategory,
+        Bulletinsecondcategory,
+        Grading,
+      ]
+    }),
+  ])
+    .then(([bulletin,]) => {
+      // console.log(bulletin)
+      res.render('bulletinviewdetail', { bulletin, })
+    })
+    .catch(err => {
+      console.log(err)
+    })
+})
+
+
+app.get('/bulletin/:id/update', (req, res) => {
+  const id = req.params.id
+  Promise.all([
+    Bulletin.findByPk(id, {
+      raw: true, nest: true, include: [
+        Bulletincategory,
+        Bulletinsecondcategory,
+        Grading,
+      ]
+    }),
+    Bulletincategory.findAll({ raw: true, nest: true }),
+    Bulletinsecondcategory.findAll({ raw: true, nest: true }),
+    Grading.findAll({ raw: true, nest: true })
+  ]).then(([bulletin, bulletincategory, bulletinsecondcategory, grading]) => {
+    console.log(bulletin)
+    console.log('===================')
+    console.log(bulletincategory)
+    console.log('===================')
+    console.log(bulletinsecondcategory)
+    console.log('===================')
+    console.log(grading)
+    console.log('===================')
+    res.render('bulletinupdate', {
+      bulletin,
+      bulletincategory,
+      bulletinsecondcategory,
+      grading
+    })
+  }).catch(err => {
+    console.log(err)
+  })
+
+})
+
+app.post('/bulletin/:id/update', upload.single('image'), (req, res) => {
+  console.log(req.body)
+  const id = req.params.id
+  console.log(req.params)
+  const { posttitle, bulletincategoryId, bulletinsecondcategoryId, gradingId, poster, postcontent } = req.body
+  if (!posttitle.trim()) {
+    console.log('標題不可為空')
+    return res.redirect('/bulletin')
+  } else if (!bulletincategoryId.trim() || bulletincategoryId === '0') {
+    console.log('公告類別數值不正確')
+    return res.redirect('/bulletin')
+  } else if (!bulletinsecondcategoryId.trim()) {
+    console.log('公告次類別數值不正確')
+    return res.redirect('/bulletin')
+  } else if (!gradingId.trim() || gradingId === '0') {
+    console.log('公告等級數值不正確')
+    return res.redirect('/bulletin')
+  } else if (!poster.trim()) {
+    console.log('發佈者不可為空')
+    return res.redirect('/bulletin')
+  } else if (!postcontent.trim()) {
+    console.log('發佈內容不可為空')
+    return res.redirect('/bulletin')
+  } else {
+    console.log('資料確認無誤, 寫入 DB')
+    console.log(id)
+    Bulletin.findByPk(id)
+      .then(bulletin => {
+        console.log('有茶道資料')
+        console.log(bulletin)
+        if (bulletin) {
+          console.log('有茶道資料')
+          console.log('有茶道資料')
+          return bulletin.update({
+            posttitle,
+            bulletincategory_id: Number(bulletincategoryId),
+            bulletinsecondcategory_id: Number(bulletinsecondcategoryId),
+            grading_id: Number(gradingId),
+            poster,
+            postcontent
+          }).then(bulletin => {
+            console.log('資料修改成功')
+            res.redirect(`/bulletin/${id}`)
+          }).catch(err => {
+            console.log(err)
+          })
+
+        }
+      })
+
+  }
+})
 // app.listen(PORT, () => {
 //   console.log(`App is running on http://localhost:${PORT}`)
 // })

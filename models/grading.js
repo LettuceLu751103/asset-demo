@@ -5,10 +5,11 @@ module.exports = (sequelize, DataTypes) => {
     Description: DataTypes.STRING
   }, {
     underscored: true,
+    modelName: 'Grading',
   });
   Grading.associate = function (models) {
     // associations can be defined here
-    Grading.belongsTo(models.Bulletin, { foreignKey: 'gradingId' })
+    Grading.hasMany(models.Bulletin, { foreignKey: 'gradingId' })
   };
   return Grading;
 };
