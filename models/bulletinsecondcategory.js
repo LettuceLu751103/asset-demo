@@ -11,6 +11,7 @@ module.exports = (sequelize, DataTypes) => {
   Bulletinsecondcategory.associate = function (models) {
     // associations can be defined here
     Bulletinsecondcategory.belongsTo(models.Bulletincategory, { foreignKey: 'bulletincategoryId' })
+    Bulletinsecondcategory.belongsTo(models.Bulletin, { foreignKey: 'bulletinsecondcategoryId' })
   };
   return Bulletinsecondcategory;
 };

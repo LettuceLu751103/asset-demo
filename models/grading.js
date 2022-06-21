@@ -6,8 +6,9 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     underscored: true,
   });
-  Grading.associate = function(models) {
+  Grading.associate = function (models) {
     // associations can be defined here
+    Grading.belongsTo(models.Bulletin, { foreignKey: 'gradingId' })
   };
   return Grading;
 };

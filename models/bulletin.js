@@ -10,12 +10,15 @@ module.exports = (sequelize, DataTypes) => {
     },
     bulletincategory_id: DataTypes.INTEGER,
     bulletinsecondcategory_id: DataTypes.INTEGER,
+    grading_id: DataTypes.INTEGER,
   }, {
     underscored: true,
   });
   Bulletin.associate = function (models) {
     // associations can be defined here
     Bulletin.hasMany(models.Bulletincategory, { foreignKey: 'bulletincategoryId' })
+    Bulletin.hasMany(models.Bulletinsecondcategory, { foreignKey: 'bulletinsecondcategoryId' })
+    Bulletin.hasMany(models.Grading, { foreignKey: 'gradingId' })
   };
   return Bulletin;
 };
