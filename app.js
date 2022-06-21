@@ -75,6 +75,7 @@ const Image = db.Image
 const Grading = db.Grading
 const Bulletincategory = db.Bulletincategory
 const Bulletinsecondcategory = db.Bulletinsecondcategory
+const Bulletin = db.Bulletin
 // 這邊可以改成解構賦值的方式處理, const {xxxx} = db.xxxx
 
 
@@ -1425,7 +1426,15 @@ app.post('/shiftpost', upload.single('image'), (req, res) => {
 
 app.get('/bulletin', (req, res) => {
   console.log('這是布告欄頁面')
-  res.render('bulletinview')
+  Bulletin.findAll({ raw: true, nest: true })
+    .then(bulletin => {
+      console.log(bulletin)
+      res.render('bulletinview')
+    })
+    .catch(err => {
+      console.log(err)
+    })
+
 })
 
 app.get('/bulletin/create', (req, res) => {
