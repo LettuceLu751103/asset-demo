@@ -21,12 +21,17 @@ const Userstatus = db.Userstatus
 const Shiftpost = db.Shiftpost
 const Shift = db.Shift
 const Image = db.Image
+const Grading = db.Grading
+const Bulletincategory = db.Bulletincategory
+const Bulletinsecondcategory = db.Bulletinsecondcategory
+const Bulletin = db.Bulletin
 const userController = require('../../controllers/apis/user-controller')
 const { authenticated, authenticatedAdmin } = require('../../middleware/api-auth') // 新增這裡
 const passport = require('passport')
 const jwt = require('jsonwebtoken')
 // QR code
 var QRCode = require('qrcode')
+const { ok } = require('assert')
 if (process.env.NODE_ENV !== 'production') {
     require('dotenv').config()
 }
@@ -1192,4 +1197,69 @@ router.post('/shiftpost/:id/delete', upload.single('image'), (req, res) => {
             console.log(err)
         })
 })
+
+
+// 查詢公告欄 API - 完成
+router.get('/bulletin', (req, res) => {
+    Bulletin.findAll({
+        raw: true, nest: true, include: [
+            Bulletincategory,
+            Bulletinsecondcategory,
+            Grading,
+        ],
+        order: [['updatedAt', 'DESC'],]
+    })
+        .then(bulletin => {
+            res.json({ status: 'ok', message: '成功查詢所有公告欄資料', data: bulletin })
+        })
+        .catch(err => {
+            res.json({ status: 'error', message: '查詢所有公告欄失敗', error_reson: err })
+        })
+})
+
+// 查詢公告等級 API - 完成
+router.get('/grading', (req, res) => {
+    Grading.findAll({ raw: true, nest: true })
+        .then(grading => {
+            if (grading) {
+                return res.json({ status: 'ok', message: '成功查詢所有公告等級', data: grading })
+            } else {
+                return res.json({ status: 'error', message: '沒有查詢到公告等級' })
+            }
+        })
+        .catch(err => {
+            res.json({ status: 'error', message: '查詢公告等級錯誤', error_reason: err })
+        })
+})
+
+// 查詢公告類別 API - 完成
+router.get('/bulletincategory', (req, res) => {
+    Bulletincategory.findAll({ nest: true, include: [Bulletinsecondcategory] })
+        .then(bulletincategory => {
+            if (bulletincategory) {
+                res.json({ status: 'ok', message: '成功查詢到所有公告類別', data: bulletincategory })
+            } else {
+                res.json({ status: 'error', message: '查詢所有公告類別失敗' })
+            }
+        })
+        .catch(err => {
+            res.json({ sttus: 'error', message: '查詢所有公告類別錯誤', error_reason: err })
+        })
+})
+
+router.get('/bulletinsecondcategory', (req, res) => {
+    Bulletinsecondcategory.findAll({ raw: true, nest: true })
+        .then(bulletinsecondcategory => {
+            if (bulletinsecondcategory) {
+                return res.json({ status: 'ok', message: '成功查詢所有公告次類別', data: bulletinsecondcategory })
+            } else {
+                return res.json({ status: 'error', message: '查詢所有公告次類別失敗' })
+            }
+        })
+        .catch(err => {
+            res.json({ status: 'err', message: '查詢所有公告次類別失敗', error_reson: err })
+        })
+})
+
+
 module.exports = router

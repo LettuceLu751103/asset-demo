@@ -49,17 +49,13 @@ const bulletinsecondcategory = document.querySelector('#bulletinsecondcategory')
 const bulletincategoryOption = document.querySelectorAll('.bulletincategoryOption')
 const grading = document.querySelector('#grading')
 const gradingOption = document.querySelectorAll('.gradingOption')
-console.log({{bulletin.bulletincategory_id}})
-console.log(bulletincategory)
-console.log(bulletincategoryOption)
-
 axios.get(`/bulletinsecondcategory/{{bulletin.bulletincategory_id}}`)
         .then(result=>{
             let rawHtml = ''
-            console.log(result.data.data.length)
+
             if(result.data.data.length>0){
                 result.data.data.forEach(dd =>{
-                console.log(dd.id)
+
                 if(dd.id == {{bulletin.bulletinsecondcategory_id}}){
                 rawHtml += `
                 <option value="${dd.id}" selected>${dd.name}</option>
@@ -82,26 +78,22 @@ axios.get(`/bulletinsecondcategory/{{bulletin.bulletincategory_id}}`)
             console.log(err)
         })
 bulletincategoryOption.forEach((option, index)=>{
-    console.log(option.value)
-    console.log(index)
     if(option.value == {{bulletin.bulletincategory_id}}){
-        console.log('比對成功, 更改 select equal true')
+
         bulletincategory.options[index].selected  = true
     }
 })
 
 gradingOption.forEach((option, index)=>{
-    console.log(option.value)
-    console.log(index)
+
     if(option.value == {{bulletin.grading_id}}){
-        console.log('比對成功, 更改 select equal true')
+
         grading.options[index].selected  = true
     }
 })
 
 bulletincategory.addEventListener('change',(event)=>{
-    console.log(event.target.value)
-    const id = event.target.value
+ 
     if(id==='0'){
         alert('請選擇公告類別')
     }else {
