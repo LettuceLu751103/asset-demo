@@ -1262,7 +1262,7 @@ router.get('/bulletinsecondcategory', (req, res) => {
         })
 })
 
-// 創建公告等級 API
+// 創建公告等級 API - 完成
 router.post('/grading/create', (req, res) => {
     console.log(req.body)
     const { name, Description } = req.body
@@ -1287,6 +1287,73 @@ router.post('/grading/create', (req, res) => {
             })
         })
 })
+
+// 創建公告類別 - 完成
+router.post('/bulletincategory/create', (req, res) => {
+    console.log(req.body)
+    const { name, Description } = req.body
+    if (!name) {
+        return res.json({ status: 'error', message: '公告類別不可為空' })
+    }
+    if (!name.trim()) {
+        return res.json({ status: 'error', message: '公告類別不可為空' })
+    }
+    Bulletincategory.findOne({ where: { name: name } })
+        .then(bulletincategory => {
+            if (bulletincategory) {
+                return res.json({ status: 'error', message: '公告類別名稱相同, 創建失敗' })
+            }
+            return Bulletincategory.create({
+                name,
+                Description
+            }).then(bc => {
+                console.log('創建公告類別成功')
+                return res.json({ status: 'ok', message: '創建公告類別成功', data: bc })
+            }).catch(err => {
+                return res.json({ status: 'error', message: '創建公告類別失敗', error_reason: err })
+            })
+        })
+
+})
+
+// 創建公告次類別 - 完成
+router.post('/bulletinsecondcategory/create', (req, res) => {
+    const { bulletincategory_id, name, Description } = req.body
+    if (!bulletincategory_id || !name) {
+        return res.json({ status: 'error', message: '公告主類別或公告次類別為空' })
+    }
+
+    if (!bulletincategory_id.trim() || !name.trim()) {
+        return res.json({ status: 'error', message: '公告主類別或公告次類別為空' })
+    }
+
+    if (typeof Number(bulletincategory_id) !== 'number') {
+        return res.json({ status: 'error', message: '公告主類別需為整數' })
+    }
+    Bulletinsecondcategory.findOne({ where: { name: name } })
+        .then(bulletinsecondcategory => {
+            if (bulletinsecondcategory) {
+                return res.json({ status: 'error', message: '次類別名稱重複, 新增失敗' })
+            }
+            Bulletinsecondcategory.create({
+                name,
+                Description,
+                bulletincategory_id: Number(bulletincategory_id)
+            }).then(bulletinsecondcategory => {
+                return res.json({
+                    status: 'ok', message: '新增公告次類別成功', data: bulletinsecondcategory
+                })
+            }).catch(err => {
+                return res.json({ status: 'error', message: '新增次類別失敗', error_reason: err })
+            })
+        })
+        .catch(err => {
+            console.log(err)
+        })
+})
+
+
+
 
 
 module.exports = router
