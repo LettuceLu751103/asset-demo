@@ -1247,6 +1247,7 @@ router.get('/bulletincategory', (req, res) => {
         })
 })
 
+// 查詢公告次類別 API - 完成
 router.get('/bulletinsecondcategory', (req, res) => {
     Bulletinsecondcategory.findAll({ raw: true, nest: true })
         .then(bulletinsecondcategory => {
@@ -1258,6 +1259,32 @@ router.get('/bulletinsecondcategory', (req, res) => {
         })
         .catch(err => {
             res.json({ status: 'err', message: '查詢所有公告次類別失敗', error_reson: err })
+        })
+})
+
+// 創建公告等級 API
+router.post('/grading/create', (req, res) => {
+    console.log(req.body)
+    const { name, Description } = req.body
+    if (!name) {
+        return res.json({ status: 'error', message: '公告等級不可為空' })
+    }
+    if (!name.trim()) {
+        return res.json({ status: 'error', message: '公告等級不可為空' })
+    }
+    Grading.findOne({ where: { name: name } })
+        .then(grading => {
+            if (grading) {
+                return res.json({ status: 'error', message: '創建失敗, 已有相同名稱的公告等級' })
+            }
+            return Grading.create({
+                name,
+                Description
+            }).then(grading => {
+                return res.json({ status: 'ok', message: '創建公告等級成功', data: grading })
+            }).catch(err => {
+                return res.json({ status: 'error', message: '創建公告等級錯誤', error_reason: err })
+            })
         })
 })
 

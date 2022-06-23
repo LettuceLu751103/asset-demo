@@ -1589,6 +1589,7 @@ app.get('/bulletinsecondcategory/create', (req, res) => {
       console.log(err)
     })
 })
+
 // 創建公告次類別
 app.post('/bulletinsecondcategory/create', (req, res) => {
   console.log('準備新增次類別')
