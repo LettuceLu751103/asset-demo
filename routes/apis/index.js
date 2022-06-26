@@ -1352,8 +1352,248 @@ router.post('/bulletinsecondcategory/create', (req, res) => {
         })
 })
 
+// 創建公告欄公告 - 完成
+router.post('/bulletin/create', upload.single('image'), (req, res) => {
+    console.log(req.body)
+    const { posttitle, bulletincategoryId, bulletinsecondcategoryId, gradingId, poster, postcontent } = req.body
+    if (!posttitle) {
+        return res.json({ status: 'error', message: 'posttitle 不可為空' })
+    } else if (!bulletincategoryId) {
+        return res.json({ status: 'error', message: 'bulletincategoryId 不可為空' })
+    } else if (!bulletinsecondcategoryId) {
+        return res.json({ status: 'error', message: 'bulletinsecondcategoryId 不可為空' })
+    } else if (!gradingId) {
+        return res.json({ status: 'error', message: 'gradingId 不可為空' })
+    } else if (!poster) {
+        return res.json({ status: 'error', message: 'poster 不可為空' })
+    } else if (!postcontent) {
+        return res.json({ status: 'error', message: 'postcontent 不可為空' })
+    }
+
+    if (!posttitle.trim()) {
+        return res.json({ status: 'error', message: 'posttitle 不可為空' })
+    } else if (!bulletincategoryId.trim() || bulletincategoryId === '0') {
+        return res.json({ status: 'error', message: 'bulletincategoryId 數值不正確' })
+    } else if (!bulletinsecondcategoryId.trim()) {
+        return res.json({ status: 'error', message: 'bulletinsecondcategoryId 數值不正確' })
+    } else if (!gradingId.trim() || gradingId === '0') {
+        return res.json({ status: 'error', message: 'gradingId 數值不正確' })
+    } else if (!poster.trim()) {
+        return res.json({ status: 'error', message: 'poster 不可為空' })
+    } else if (!postcontent.trim()) {
+        return res.json({ status: 'error', message: 'postcontent 不可為空' })
+    } else {
+        Bulletin.create({
+            posttitle: posttitle.trim(),
+            bulletincategory_id: Number(bulletincategoryId.trim()),
+            bulletinsecondcategory_id: Number(bulletinsecondcategoryId.trim()),
+            grading_id: Number(gradingId.trim()),
+            poster: poster.trim(),
+            postcontent: postcontent.trim()
+        }).then(bulletin => {
+            res.json({ status: 'ok', message: '成功建立公告', data: bulletin })
+        }).catch(err => {
+            res.json({ status: 'error', message: '建立公告錯誤', error_reason: err })
+        })
+    }
+
+})
+
+// 更改公告等級 API - 完成
+router.put('/grading/:id/update', (req, res) => {
+    let name = req.body.name
+    const Description = req.body.Description
+    const id = req.params.id
+    if (!name) {
+        return res.json({ status: 'error', messge: '公告等級名稱不可為空' })
+    }
+    name = name.trim()
+    if (!name) {
+        return res.json({ status: 'error', messge: '公告等級名稱不可為空' })
+    }
+    Grading.findByPk(id)
+        .then(grading => {
+            if (grading) {
+                return grading.update({
+                    name: name,
+                    Description: Description
+                }).then(gradingupdate => {
+                    return res.json({ status: 'ok', message: '成功修改公告等級', data: gradingupdate })
+                }).catch(err => {
+                    return res.json({ status: 'error', message: '成功修改公告等級錯誤', error_reason: err })
+                })
+            } else {
+                res.json({ status: 'error', message: '查詢不到, 無法修改此公告等級' })
+            }
+
+        })
+        .catch(err => {
+            console.log(err)
+        })
+})
+
+// 更改公告類別 API - 完成
+router.put('/bulletincategory/:id/update', (req, res) => {
+    let name = req.body.name
+    const Description = req.body.Description
+    const id = req.params.id
+    if (!name) {
+        return res.json({ status: 'error', message: '公告類別不可以為空' })
+    }
+    name = name.trim()
+    if (!name) {
+        return res.json({ status: 'error', message: '公告類別不可以為空' })
+    }
+
+    Bulletincategory.findByPk(id)
+        .then(bulletincategory => {
+            if (bulletincategory) {
+                return bulletincategory.update({
+                    name,
+                    Description
+                }).then(bc => {
+                    return res.json({ status: 'ok', message: '已成功修改公告類別', data: bc })
+                })
+            }
+            return res.json({ status: 'error', message: '查詢不到, 無法修改此公告類別' })
+        })
+        .catch(err => {
+            console.log(err)
+        })
+})
+
+// 更改公告次類別 API - 完成
+router.put('/bulletinsecondcategory/:id/update', (req, res) => {
+    const Description = req.body.Description
+    let name = req.body.name
+    const id = req.params.id
+    let bulletincategoryId = req.body.bulletincategoryId
+
+    if (name === undefined) {
+        return res.json({ status: 'error', message: '公告次類別 不可以為空' })
+    } else if (bulletincategoryId === undefined) {
+        return res.json({ status: 'error', message: '公告類別 id 不可為空' })
+    }
+
+    name = name.trim()
+    bulletincategoryId = bulletincategoryId.trim()
+
+    if (!name) {
+        return res.json({ status: 'error', message: '公告次類別 不可以為空' })
+    } else if (!bulletincategoryId) {
+        return res.json({ status: 'error', message: '公告類別 id 不可為空' })
+    }
+
+    Bulletinsecondcategory.findByPk(id)
+        .then(bulletinsecondcategory => {
+            if (bulletinsecondcategory) {
+                return bulletinsecondcategory.update({
+                    name,
+                    Description,
+                    bulletincategoryId
+                }).then(bsc => {
+                    res.json({ status: 'ok', message: '成功修改公告次類別', data: bsc })
+                }).catch(err => {
+                    return res.json({ status: 'error', message: '修改公告次類別錯誤', error_reason: err })
+                })
+            }
+            return res.json({ status: 'error', message: '查詢不到公告次類別, 無法修改' })
+        })
+        .catch(err => {
+            return res.json({ status: 'error', message: '修改公告次類別錯誤', error_reason: err })
+        })
+})
 
 
+// 更改公告 API - 完成
+router.put('/bulletin/:id/update', upload.single('image'), (req, res) => {
+    const id = req.params.id
+    let posttitle = req.body.posttitle
+    let bulletincategoryId = req.body.bulletincategoryId
+    let bulletinsecondcategoryId = req.body.bulletinsecondcategoryId
+    let gradingId = req.body.gradingId
+    let poster = req.body.poster
+    let postcontent = req.body.postcontent
+    let isdeleted = req.body.isdeleted
 
+    console.log(req.body)
+    console.log(id)
+    if (posttitle === undefined) {
+        return res.json({ status: 'error', message: 'posttitle 標題不可為空' })
+    } else if (bulletincategoryId === undefined) {
+        return res.json({ status: 'error', message: 'bulletincategoryId 不可為空' })
+    } else if (bulletinsecondcategoryId === undefined) {
+        return res.json({ status: 'error', message: 'bulletinsecondcategoryId 不可為空' })
+    } else if (gradingId === undefined) {
+        return res.json({ status: 'error', message: 'gradingId 不可為空' })
+    } else if (poster === undefined) {
+        return res.json({ status: 'error', message: 'poster 不可為空' })
+    } else if (postcontent === undefined) {
+        return res.json({ status: 'error', message: 'postcontent 不可為空' })
+    }
+
+    posttitle = posttitle.trim()
+    bulletincategoryId = bulletincategoryId.trim()
+    bulletinsecondcategoryId = bulletinsecondcategoryId.trim()
+    gradingId = gradingId.trim()
+    poster = poster.trim()
+    postcontent = postcontent.trim()
+
+    if (!posttitle) {
+        return res.json({ status: 'error', message: 'posttitle 標題不可為空' })
+    } else if (!bulletincategoryId) {
+        return res.json({ status: 'error', message: 'bulletincategoryId 不可為空' })
+    } else if (!bulletinsecondcategoryId) {
+        return res.json({ status: 'error', message: 'bulletinsecondcategoryId 不可為空' })
+    } else if (!gradingId) {
+        return res.json({ status: 'error', message: 'gradingId 不可為空' })
+    } else if (!poster) {
+        return res.json({ status: 'error', message: 'poster 不可為空' })
+    } else if (!postcontent) {
+        return res.json({ status: 'error', message: 'postcontent 不可為空' })
+    } else {
+        Bulletin.findByPk(id)
+            .then(bulletin => {
+                if (bulletin) {
+                    return bulletin.update({
+                        posttitle,
+                        bulletincategoryId,
+                        bulletinsecondcategoryId,
+                        gradingId,
+                        poster,
+                        postcontent,
+                        isdeleted
+                    }).then(bulletin => {
+                        return res.json({ status: 'ok', message: '修改 bulletin 資料成功', data: bulletin })
+                    }).catch(err => {
+                        return res.json({ status: 'error', message: '修改公告失敗', error_reason: err })
+                    })
+                }
+                return res.json({ status: 'error', message: '查詢不到 bulletin 資料, 修改失敗' })
+            })
+            .catch(err => {
+                return res.json({ status: 'error', message: '修改公告失敗', error_reason: err })
+            })
+    }
+
+})
+
+
+// 查詢單個公告等級 API - 未完成
+router.get('/grading/:id', (req, res) => {
+
+})
+// 查詢單個公告類別 API - 未完成
+router.get('/bulletincategory/:id', (req, res) => {
+
+})
+// 查詢單個公告次類別 API - 未完成
+router.get('/bulletinsecondcategory/:id', (req, res) => {
+
+})
+// 查詢單個公告資料 API - 未完成
+router.get('/bulletin/:id', (req, res) => {
+
+})
 
 module.exports = router
