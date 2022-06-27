@@ -378,7 +378,7 @@ router.get('/officeAssets', (req, res) => {
     ]).then(([assets, category, office, status, secondcategory]) => {
         // console.log(assets)
         assets.rows.forEach(item => {
-            QRCode.toDataURL(`http://10.4.100.241:3000/editAssets/${item.id}`, function (err, url) {
+            QRCode.toDataURL(`https://mxitweb.lettucelu.com/editAssets/${item.id}`, function (err, url) {
                 item.qrcode = url
             })
         })
@@ -432,7 +432,7 @@ router.post('/officeAssets/create', upload.single('image'), (req, res) => {
                         if (err) throw err;
                         console.log('File Renamed.');
                     });
-                    const qrcodeContent = `https://10.4.100.241:3000/scanqrcode?package=0&assetId=${assetId}`
+                    const qrcodeContent = `https://mxitweb.lettucelu.com/scanqrcode?package=0&assetId=${assetId}`
                     const qrcode = `/images/qrcode/assets/${assetId}.png`
                     // 針對 asset 產生專屬 QR code
                     QRCode.toFile(`./public/images/qrcode/assets/${assetId}.png`, qrcodeContent, {
@@ -481,7 +481,7 @@ router.post('/officeAssets/create', upload.single('image'), (req, res) => {
         }).then((asset) => {
             console.log('==== 產生 asset qrcode 並存入 DB ====')
             const assetId = asset.dataValues.id
-            const qrcodeContent = `https://10.4.100.241:3000/scanqrcode?package=0&assetId=${assetId}`
+            const qrcodeContent = `https://mxitweb.lettucelu.com/scanqrcode?package=0&assetId=${assetId}`
             const qrcode = `/images/qrcode/assets/${assetId}.png`
             // 針對 asset 產生專屬 QR code
             QRCode.toFile(`./public/images/qrcode/assets/${assetId}.png`, qrcodeContent, {
@@ -734,7 +734,7 @@ router.get('/gatepass', (req, res) => {
             ...gp.dataValues,
         }))
         gatepass.forEach(item => {
-            QRCode.toDataURL(`http://10.4.100.241:3000/scanqrcode?package=1&gatepassId=${item.id}`, function (err, url) {
+            QRCode.toDataURL(`https://mxitweb.lettucelu.com/scanqrcode?package=1&gatepassId=${item.id}`, function (err, url) {
                 item.qrcode = url
             })
         })
@@ -762,7 +762,7 @@ router.post('/gatepass/empty', (req, res) => {
             status: 5
         }).then(gp => {
 
-            const qrcodeContent = `https://10.4.100.241:3000/scanqrcode?package=1&gatepassId=${gp.id}`
+            const qrcodeContent = `https://mxitweb.lettucelu.com/scanqrcode?package=1&gatepassId=${gp.id}`
             const qrcode = `./images/qrcode/gatepasses/${gp.id}.png`
             // 針對 gatepass 產生專屬 QR code
             QRCode.toFile(`./public/images/qrcode/gatepasses/${gp.id}.png`, qrcodeContent, {
