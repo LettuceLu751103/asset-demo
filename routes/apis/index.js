@@ -819,18 +819,38 @@ router.get('/status', (req, res) => {
         })
 })
 
-// 獲取個別使用者訊息 user API - 完成
-router.get('/users/:id', (req, res) => {
-    console.log('呼叫獲取個別使用者訊息 user API')
-    User.findByPk(req.params.id)
+// get current login user
+router.get('/users/currentuser', authenticated, (req, res) => {
+    User.findByPk(req.user.id)
         .then(user => {
             console.log(user)
-            res.json({ status: 'ok', message: '成功獲得個別使用者列表', data: user })
+            res.json({ status: 'ok', message: '成功獲得current使用者列表', data: user })
         })
         .catch(err => {
             console.log(err)
         })
 })
+
+
+// 獲取個別使用者訊息 user API - 完成
+router.get('/users/:id', authenticated, (req, res) => {
+    console.log('呼叫獲取個別使用者訊息 user API')
+    console.log(typeof req.user.id)
+    console.log(typeof req.params.id)
+
+    User.findByPk(req.params.id)
+        .then(user => {
+            // console.log(user)
+            res.json({ status: 'ok', message: '成功獲得個別使用者列表', data: user })
+        })
+        .catch(err => {
+            console.log(err)
+        })
+
+
+})
+
+
 
 // 修改個別使用者訊息 user API - 完成
 router.post('/users/edit', (req, res) => {
@@ -865,7 +885,7 @@ router.post('/users/edit', (req, res) => {
 })
 
 // 獲取所有使用者訊息 users API - 完成
-router.get('/users', (req, res) => {
+router.get('/users', authenticated, (req, res) => {
     console.log('呼叫獲取所有使用者訊息 users API')
     User.findAll({
         raw: true,
@@ -1200,7 +1220,7 @@ router.post('/shiftpost/:id/delete', upload.single('image'), (req, res) => {
 
 
 // 查詢公告欄 API - 完成
-router.get('/bulletin', (req, res) => {
+router.get('/bulletin', authenticated, (req, res) => {
     Bulletin.findAll({
         raw: true, nest: true, include: [
             Bulletincategory,
