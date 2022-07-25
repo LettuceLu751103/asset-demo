@@ -233,9 +233,9 @@ router.post('/officeAssets/update', upload.single('image'), (req, res) => {
     console.log('======= 呼叫修改資產 officeAssets API =======')
     const assetId = Number(req.body.assetId)
     const { file } = req
-    const { name, Vendor, Model, Description, categoryId, officeId, statusId, secondcategoryId, sn, pn } = req.body
+    const { name, Vendor, Model, Description, categoryId, officeId, statusId, secondcategoryId, sn, pn, updateduser } = req.body
 
-    if (assetId && name && Vendor && Model && Description && categoryId && officeId && statusId) {
+    if (assetId && name && Vendor && Model && Description && categoryId && officeId && statusId && updateduser) {
         if (file) {
             console.log('有收到圖片要另外處理')
             fs.readFile(file.path, (err, data) => {
@@ -255,7 +255,8 @@ router.post('/officeAssets/update', upload.single('image'), (req, res) => {
                                 Model,
                                 officeId,
                                 Description,
-                                image: file ? `/upload/${file.originalname}` : null
+                                image: file ? `/upload/${file.originalname}` : null,
+                                updateduser,
                             }).then(asset => {
                                 console.log('==== 更改完的資料 ====')
                                 console.log(assetId)
@@ -289,7 +290,8 @@ router.post('/officeAssets/update', upload.single('image'), (req, res) => {
                         categoryId: categoryId,
                         secondcategoryId,
                         status_id: statusId,
-                        office_id: officeId
+                        office_id: officeId,
+                        updateduser,
                     })
                 })
                 .then((asset) => {
