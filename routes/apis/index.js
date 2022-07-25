@@ -376,7 +376,7 @@ router.get('/officeAssets', (req, res) => {
         Office.findAll({ raw: true }),
         Status.findAll({ raw: true }),
     ]).then(([assets, category, office, status, secondcategory]) => {
-        // console.log(assets)
+        console.log(assets)
         assets.rows.forEach(item => {
             QRCode.toDataURL(`https://mxitweb.lettucelu.com/editAssets/${item.id}`, function (err, url) {
                 item.qrcode = url
@@ -402,7 +402,11 @@ router.post('/officeAssets/create', upload.single('image'), (req, res) => {
     const secondcategoryId = req.body.secondcategoryId
     const officeId = req.body.officeId
     const statusId = req.body.statusId
+    const createduser = req.body.createduser || 'null'
 
+    if (createduser === 'null') {
+        res.json({ status: 'error', message: '請進行登入後, 再輸入資產資料' })
+    }
     if (file) {
         console.log('傳入的檔案有圖片, 需要進行檔案處理')
         fs.readFile(file.path, (err, data) => {
@@ -420,7 +424,8 @@ router.post('/officeAssets/create', upload.single('image'), (req, res) => {
                     Quantity,
                     officeId,
                     Description,
-                    image: file ? `/upload/${file.originalname}` : null
+                    image: file ? `/upload/${file.originalname}` : null,
+                    createduser
                 }).then((asset) => {
                     console.log('==== 產生 asset qrcode 並存入 DB ====')
 
@@ -464,7 +469,9 @@ router.post('/officeAssets/create', upload.single('image'), (req, res) => {
     } else {
         console.log('傳入的檔案沒有圖片')
         console.log(req.body)
-
+        if (!createduser) {
+            console.log('without username')
+        }
 
         Asset.create({
             statusId,
@@ -477,7 +484,8 @@ router.post('/officeAssets/create', upload.single('image'), (req, res) => {
             Model,
             Quantity,
             officeId,
-            Description
+            Description,
+            createduser,
         }).then((asset) => {
             console.log('==== 產生 asset qrcode 並存入 DB ====')
             const assetId = asset.dataValues.id

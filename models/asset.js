@@ -15,6 +15,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     status_id: DataTypes.INTEGER,
     office_id: DataTypes.INTEGER,
+    createduser: DataTypes.STRING,
   }, {
     underscored: true,
     modelName: 'Asset',
