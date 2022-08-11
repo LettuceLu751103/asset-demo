@@ -378,7 +378,7 @@ router.get('/officeAssets', (req, res) => {
         Office.findAll({ raw: true }),
         Status.findAll({ raw: true }),
     ]).then(([assets, category, office, status, secondcategory]) => {
-        console.log(assets)
+        // console.log(assets)
         assets.rows.forEach(item => {
             QRCode.toDataURL(`https://mxitweb.lettucelu.com/editAssets/${item.id}`, function (err, url) {
                 item.qrcode = url
@@ -392,9 +392,9 @@ router.get('/officeAssets', (req, res) => {
 })
 
 // 創建新的 officeAssets 資產 API - 完成
-router.post('/officeAssets/create', authenticated, upload.single('image'), (req, res) => {
+router.post('/officeAssets/create', upload.single('image'), (req, res) => {
     console.log('======= 呼叫創建新資產 officeAssets API =======')
-    console.log(req.user.dataValues.name)
+    // console.log(req.user.dataValues.name)
     console.log(req.body)
     console.log(req.file)
     console.log('======= 呼叫創建新資產 officeAssets API =======')
@@ -405,7 +405,8 @@ router.post('/officeAssets/create', authenticated, upload.single('image'), (req,
     const secondcategoryId = req.body.secondcategoryId
     const officeId = req.body.officeId
     const statusId = req.body.statusId
-    const createduser = req.user.dataValues.name || 'null'
+    const createduser = req.body.createduser || 'null'
+    // const createduser = req.user.dataValues.name || 'null'
 
     if (createduser === 'null') {
         res.json({ status: 'error', message: '請進行登入後, 再輸入資產資料' })
